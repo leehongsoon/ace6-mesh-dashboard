@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ACE6 Mesh Dashboard — ST Engineering</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#F4F5F6;color:#404040;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── CONNECT OVERLAY ── */
+#overlay{position:fixed;inset:0;background:rgba(64,64,64,.85);display:flex;align-items:center;justify-content:center;z-index:999}
+#connect-box{background:#fff;border-radius:6px;padding:36px 40px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+#connect-box .co-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+#connect-box .co-sq{width:34px;height:34px;background:#E30613;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px}
+#connect-box .co-title{font-size:15px;font-weight:700;color:#404040;letter-spacing:.5px}
+#connect-box .co-sub{font-size:11px;color:#8A9099;margin-top:2px}
+.co-field{margin-bottom:16px}
+.co-field label{display:block;font-size:10px;font-weight:700;color:#565D65;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px}
+.co-field input{width:100%;border:1px solid #D8DADC;border-radius:3px;padding:9px 12px;font-size:13px;color:#404040;outline:none;font-family:Arial,sans-serif}
+.co-field input:focus{border-color:#E30613}
+.co-field .hint{font-size:10px;color:#8A9099;margin-top:4px}
+#connect-btn{width:100%;padding:11px;background:#E30613;border:none;border-radius:3px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;margin-top:4px}
+#connect-btn:hover{background:#B71C1C}
+#connect-btn:disabled{background:#CFD2D5;cursor:not-allowed}
+#connect-err{color:#E30613;font-size:11px;margin-top:10px;display:none;text-align:center}
+#demo-btn{width:100%;padding:9px;background:transparent;border:1px solid #D8DADC;border-radius:3px;color:#565D65;font-size:12px;cursor:pointer;font-family:Arial,sans-serif;margin-top:8px}
+#demo-btn:hover{border-color:#565D65}
+
+/* ── TOP BAR ── */
+#topbar{height:52px;background:#E30613;display:flex;align-items:center;padding:0 16px;gap:6px;box-shadow:0 2px 8px rgba(227,6,19,.35);flex-shrink:0;overflow-x:auto}
+.brand{display:flex;align-items:center;gap:8px;margin-right:12px;flex-shrink:0}
+.brand .sq{width:28px;height:28px;background:rgba(255,255,255,.22);border-radius:2px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:12px}
+.brand span{color:#fff;font-weight:700;font-size:11px;letter-spacing:1.5px;white-space:nowrap}
+.chip{display:flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;background:rgba(255,255,255,.18);flex-shrink:0}
+.chip .cl{color:rgba(255,255,255,.65);font-size:9px;font-weight:700;letter-spacing:1.5px}
+.chip .cv{color:#fff;font-size:11px;font-weight:700}
+#tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#conn-status{display:flex;align-items:center;gap:6px}
+#conn-dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 2s infinite}
+#conn-dot.offline{background:#FFD54F;animation:none}
+#conn-dot.error{background:#FF8A65;animation:none}
+#conn-txt{color:rgba(255,255,255,.85);font-size:10px;font-weight:700;letter-spacing:1.5px}
+#change-ip{background:rgba(255,255,255,.18);border:none;color:#fff;font-size:10px;padding:4px 10px;border-radius:12px;cursor:pointer;font-family:Arial,sans-serif}
+
+/* ── BODY ── */
+#body{flex:1;display:flex;overflow:hidden}
+
+/* ── SIDEBAR ── */
+#sidebar{width:190px;flex-shrink:0;background:#404040;display:flex;flex-direction:column;overflow-y:auto}
+.nav-section{padding:16px 16px 6px;color:rgba(255,255,255,.28);font-size:9px;font-weight:700;letter-spacing:2px}
+.nav-item{width:100%;text-align:left;padding:10px 16px;background:transparent;border:none;border-left:3px solid transparent;color:rgba(255,255,255,.52);cursor:pointer;font-size:12px;font-family:Arial,sans-serif;display:flex;align-items:center;gap:8px}
+.nav-item:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-item.active{background:rgba(227,6,19,.28);border-left-color:#E30613;color:#fff;font-weight:700}
+.nav-child{width:100%;text-align:left;padding:7px 16px 7px 34px;background:transparent;border:none;border-left:3px solid transparent;color:rgba(255,255,255,.38);cursor:pointer;font-size:11px;font-family:Arial,sans-serif}
+.nav-child:hover{color:rgba(255,255,255,.7)}
+.nav-child.active{background:rgba(227,6,19,.2);border-left-color:#E30613;color:#fff;font-weight:600}
+.nav-arrow{margin-left:auto;font-size:9px}
+#logout-btn{margin:auto 12px 12px;padding:9px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.38);cursor:pointer;font-size:11px;font-family:Arial,sans-serif;width:calc(100% - 24px)}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow:auto;display:flex;flex-direction:column}
+
+/* ── SHARED ── */
+.card{background:#fff;border:1px solid #D8DADC;border-radius:4px}
+.sec-title{font-size:10px;font-weight:700;color:#565D65;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #E30613;display:inline-block}
+.panel-pad{padding:24px}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th{padding:8px 14px;color:#565D65;font-size:11px;font-weight:700;text-align:left;background:#F4F5F6;border-bottom:1px solid #D8DADC}
+td{padding:8px 14px;color:#404040;border-top:1px solid #D8DADC}
+.snr-pill{display:inline-block;padding:2px 10px;border-radius:3px;font-weight:700;font-size:11px}
+
+/* ── STATUS VIEW ── */
+.stat-cards{display:flex;gap:12px;padding:16px 20px 0;flex-shrink:0}
+.stat-card{flex:1;padding:12px 16px}
+.stat-lbl{color:#8A9099;font-size:10px;font-weight:700;letter-spacing:1.2px;margin-bottom:6px;text-transform:uppercase}
+.stat-val{font-size:22px;font-weight:700}
+#canvas-wrap{flex:1;margin:14px 20px 0;background:#F8F9FA;border:1px solid #D8DADC;border-radius:4px;position:relative;min-height:280px;overflow:hidden}
+#topo-canvas{width:100%;height:100%;display:block}
+#map-legend{position:absolute;bottom:14px;right:14px;background:rgba(255,255,255,.94);border:1px solid #D8DADC;border-radius:4px;padding:10px 14px}
+.leg-title{color:#565D65;font-size:9px;font-weight:700;letter-spacing:1.5px;margin-bottom:8px}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.leg-line{width:22px;height:2.5px}
+.leg-lbl{color:#565D65;font-size:10px}
+#self-badge{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.94);border:1px solid #D8DADC;border-radius:4px;padding:5px 12px;color:#E30613;font-size:10px;font-weight:700}
+#last-update{position:absolute;bottom:14px;left:14px;background:rgba(255,255,255,.94);border:1px solid #D8DADC;border-radius:4px;padding:5px 12px;color:#8A9099;font-size:9px}
+.delay-strip{display:flex;gap:10px;padding:12px 20px 14px;flex-shrink:0;align-items:center;flex-wrap:wrap}
+.delay-lbl{color:#8A9099;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.delay-chip{background:#fff;border:1px solid #D8DADC;border-radius:3px;padding:5px 12px;display:flex;gap:8px;align-items:center;font-size:11px}
+
+/* ── RF / DEVICE / SETTINGS ── */
+.rf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.rf-card{padding:16px 20px}
+.rf-lbl{color:#8A9099;font-size:10px;font-weight:700;letter-spacing:1.2px;margin-bottom:8px;text-transform:uppercase}
+.rf-val{color:#E30613;font-size:20px;font-weight:700}
+.dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.kv-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #D8DADC}
+.kv-k{color:#8A9099;font-size:12px}.kv-v{color:#404040;font-size:12px;font-weight:600}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.feat{padding:10px 14px;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:11px}
+.feat.on{background:#FFEBEE;border:1px solid rgba(227,6,19,.35);color:#E30613;font-weight:700}
+.feat.off{background:#F4F5F6;border:1px solid #D8DADC;color:#8A9099}
+.feat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.feat.on .feat-dot{background:#E30613}.feat.off .feat-dot{background:#CFD2D5}
+.big-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.big-card{padding:20px;text-align:center}
+.big-lbl{color:#8A9099;font-size:10px;font-weight:700;letter-spacing:1.2px;margin-bottom:10px;text-transform:uppercase}
+.big-val{color:#E30613;font-size:32px;font-weight:700}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:10px;font-weight:700;color:#565D65;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px}
+.field input,.field select{width:100%;border:1px solid #D8DADC;border-radius:3px;padding:8px 10px;font-size:12px;color:#404040;font-family:Arial,sans-serif;outline:none;background:#fff}
+.field input:focus,.field select:focus{border-color:#E30613}
+.btn-red{padding:9px 28px;background:#E30613;border:none;border-radius:3px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
+.btn-red.saved{background:#2E7D32}
+.btn-grey{padding:9px 28px;background:transparent;border:1px solid #D8DADC;border-radius:3px;color:#565D65;font-size:12px;cursor:pointer;font-family:Arial,sans-serif}
+.bar-wrap{display:flex;align-items:center;gap:10px}
+.bar-track{flex:1;height:5px;background:#D8DADC;border-radius:3px}
+.bar-fill{height:100%;background:#E30613;border-radius:3px}
+
+/* ── ERROR / OFFLINE BANNER ── */
+#api-banner{display:none;background:#FFF3E0;border-bottom:1px solid #FFB74D;padding:7px 20px;font-size:11px;color:#E65100;flex-shrink:0;align-items:center;gap:8px}
+#api-banner.show{display:flex}
+#api-banner.error{background:#FFEBEE;border-color:#EF9A9A;color:#B71C1C}
+
+/* ── PLACEHOLDER ── */
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
+.ph-icon{width:44px;height:44px;border:2px solid #D8DADC;border-radius:50%;margin-bottom:16px;display:flex;align-items:center;justify-content:center}
+.ph-title{font-size:13px;font-weight:700;color:#565D65;letter-spacing:1px}
+.ph-sub{font-size:11px;color:#CFD2D5;margin-top:6px}
+
+/* ── LOADING SKELETON ── */
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:3px;height:20px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#F4F5F6}
+::-webkit-scrollbar-thumb{background:#D8DADC;border-radius:2px}
+button:focus{outline:none}
+</style>
+</head>
+<body>
+
+<!-- ── CONNECT OVERLAY ── -->
+<div id="overlay">
+  <div id="connect-box">
+    <div class="co-logo">
+      <div class="co-sq">ST</div>
+      <div><div class="co-title">ACE6 Mesh Dashboard</div><div class="co-sub">ST Engineering · Advanced Networks & Sensors</div></div>
+    </div>
+    <div class="co-field">
+      <label>Node IP Address</label>
+      <input id="ip-input" type="text" placeholder="192.168.10.5" value="192.168.10.5"/>
+      <div class="hint">Enter the IP address of the local mesh node to connect to</div>
+    </div>
+    <div class="co-field">
+      <label>Poll Interval (seconds)</label>
+      <input id="poll-input" type="number" value="3" min="1" max="30"/>
+      <div class="hint">How often to refresh live status data (recommended: 3s)</div>
+    </div>
+    <button id="connect-btn" onclick="doConnect()">Connect to Node</button>
+    <div id="connect-err"></div>
+    <button id="demo-btn" onclick="doDemo()">▶ Run with Demo Data (offline)</button>
+  </div>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="brand"><div class="sq">ST</div><span>ST ENGINEERING · ACE6 MESH</span></div>
+  <div class="chip"><span class="cl">STATUS</span><span class="cv" id="c-status">–</span></div>
+  <div class="chip"><span class="cl">MESH ID</span><span class="cv" id="c-mesh">–</span></div>
+  <div class="chip"><span class="cl">NODE ID</span><span class="cv" id="c-node">–</span></div>
+  <div class="chip"><span class="cl">FREQUENCY</span><span class="cv" id="c-freq">–</span></div>
+  <div class="chip"><span class="cl">BANDWIDTH</span><span class="cv" id="c-bw">–</span></div>
+  <div class="chip"><span class="cl">RF MODE</span><span class="cv" id="c-mode">–</span></div>
+  <div class="chip"><span class="cl">RANGE</span><span class="cv" id="c-range">–</span></div>
+  <div class="chip"><span class="cl">ENCRYPT</span><span class="cv" id="c-enc">–</span></div>
+  <div id="tb-right">
+    <div id="conn-status"><div id="conn-dot" class="offline"></div><span id="conn-txt">CONNECTING</span></div>
+    <button id="change-ip" onclick="changeIP()">⇄ Change IP</button>
+  </div>
+</div>
+
+<!-- ── API BANNER ── -->
+<div id="api-banner" role="alert">
+  <span id="banner-msg">⚠ Unable to reach node — retrying…</span>
+</div>
+
+<!-- ── BODY ── -->
+<div id="body">
+  <div id="sidebar">
+    <div class="nav-section">NAVIGATION</div>
+    <button class="nav-item active" onclick="nav('status',this)">Status</button>
+    <button class="nav-item" onclick="nav('topology',this);tog('g-topo',this,'a-topo')">Topology <span class="nav-arrow" id="a-topo">▸</span></button>
+    <div id="g-topo" style="display:none">
+      <button class="nav-child" onclick="nav('topo-link',this)">Link</button>
+      <button class="nav-child" onclick="nav('topo-table',this)">Table</button>
+    </div>
+    <button class="nav-item" onclick="nav('rf',this)">RF</button>
+    <button class="nav-item" onclick="nav('network',this);tog('g-net',this,'a-net')">Network <span class="nav-arrow" id="a-net">▸</span></button>
+    <div id="g-net" style="display:none">
+      <button class="nav-child" onclick="nav('net-global',this)">Global Settings</button>
+      <button class="nav-child" onclick="nav('net-basic',this)">Basic</button>
+      <button class="nav-child" onclick="nav('net-advance',this)">Advance</button>
+      <button class="nav-child" onclick="nav('net-rf',this)">RF</button>
+      <button class="nav-child" onclick="nav('net-data',this)">Data</button>
+      <button class="nav-child" onclick="nav('net-uart',this)">UART</button>
+      <button class="nav-child" onclick="nav('net-audio',this)">Audio</button>
+      <button class="nav-child" onclick="nav('net-gps',this)">GPS</button>
+    </div>
+    <button class="nav-item" onclick="nav('security',this);tog('g-sec',this,'a-sec')">Security <span class="nav-arrow" id="a-sec">▸</span></button>
+    <div id="g-sec" style="display:none">
+      <button class="nav-child" onclick="nav('sec-enc',this)">Encryption</button>
+      <button class="nav-child" onclick="nav('sec-login',this)">Login</button>
+    </div>
+    <button class="nav-item" onclick="nav('device',this);tog('g-dev',this,'a-dev')">Device Info <span class="nav-arrow" id="a-dev">▸</span></button>
+    <div id="g-dev" style="display:none">
+      <button class="nav-child" onclick="nav('dev-about',this)">About</button>
+      <button class="nav-child" onclick="nav('dev-update',this)">Update</button>
+    </div>
+    <button id="logout-btn">Logout</button>
+  </div>
+  <div id="content"></div>
+</div>
+
+<script>
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const FREQ_MODES={single:"SINGLE",roaming:"ROAMING",hop:"FHSS",hop2:"FHSS(L)",smart:"SMART",adaptiveHopping:"FHSS(A)",smartAdvanced:"SMART(A)",hopfdma:"FDMA(H)"};
+const BW_MAP={0:"2.5 MHz",1:"5 MHz",2:"10 MHz",3:"20 MHz",6:"300 KHz",7:"30 MHz",8:"1.25 MHz",9:"250 KHz",10:"500 KHz",11:"1 MHz"};
+const ENC_MAP={0:"None",1:"AES-256",2:"AES-128",3:"DES"};
+const ST={red:"#E30613",green:"#2E7D32",amber:"#E65100",muted:"#CFD2D5",mid:"#565D65",dark:"#404040"};
+
+// ── DEMO DATA (fallback) ──────────────────────────────────────────────────────
+const DEMO_CONFIG={freqMode:"smart",freqDefault:0,freqList:[1200000000,1250000000,1300000000],span:2,meshName:"ZENITH-NET",id:5,ip:"192.168.10.5",nwMask:"255.255.255.0",rangeMode:"10",dataEncryptionMode:1,pwAtten1:10,pwAtten2:10};
+const DEMO_STATUS={nodeNumber:5,selfId:5,ip:"192.168.10.5",temp:58.4,batteryLevel:82,silenced:false,nodeInfos:[{id:1,ip:"192.168.10.1",latitude:1.2855,longitude:103.812,altitude:45,resourceRatio:0.52},{id:3,ip:"192.168.10.3",latitude:1.2848,longitude:103.8115,altitude:38,resourceRatio:0.48},{id:5,ip:"192.168.10.5",latitude:1.2852,longitude:103.8119,altitude:51,resourceRatio:0.61},{id:7,ip:"192.168.10.7",latitude:1.2862,longitude:103.8124,altitude:33,resourceRatio:0.44},{id:9,ip:"192.168.10.9",latitude:1.2843,longitude:103.8109,altitude:29,resourceRatio:0.39}],linkQuality:[[-10,-10,24,-10,18],[-10,-10,-10,22,-10],[24,-10,-10,26,21],[-10,22,26,-10,-10],[18,-10,21,-10,-10]],transmissionDelay:[{id:1,delay:127},{id:3,delay:203},{id:7,delay:89},{id:9,delay:156}]};
+const DEMO_DEVICE={version:"2.12.1-rc10-M1022",deviceType:"M1022",deviceSn:"21cf0d82dff53a91a4cfa76111b07a9f",freqMax:1500000000,freqMin:1200000000,powerMax:27,chipLevel:0,powerMaxAtten:7,licenseinfo:{maxNodeNum:64,maxThroughput:50000,freqHopping:true,freqSmart:true,freqSmartAdvanced:true,adaptiveFreqHopping:true,dataEncryptionAES256:true,dataEncryptionAES128:true,wifi:true,silence:true,supportedWaveform:3}};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let nodeIP='', pollInterval=3000, pollTimer=null, animId=null, phase=0;
+let isDemo=false, consecutiveFails=0;
+let liveConfig={}, liveStatus={}, liveDevice={};
+let currentView='status';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmtFreq(hz){if(!hz)return'–';if(hz>=1e9)return(hz/1e9).toFixed(3)+' GHz';if(hz>=1e6)return(hz/1e6).toFixed(1)+' MHz';return hz+' Hz';}
+function snrColor(s){return s<=-10?ST.muted:s<10?ST.amber:s<20?ST.green:ST.red;}
+function el(id){return document.getElementById(id);}
+function now(){return new Date().toLocaleTimeString();}
+
+// ── API FETCH ─────────────────────────────────────────────────────────────────
+async function apiFetch(path, opts={}){
+  const url=`http://${nodeIP}${path}`;
+  const ctrl=new AbortController();
+  const timeout=setTimeout(()=>ctrl.abort(),5000);
+  try{
+    const r=await fetch(url,{...opts,signal:ctrl.signal});
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    return opts.method==='POST'?{ok:true}:await r.json();
+  }catch(e){
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+async function fetchAll(){
+  if(isDemo){
+    // Simulate slight temp variation in demo
+    liveStatus={...DEMO_STATUS,temp:parseFloat((58.4+Math.sin(Date.now()/3000)*0.4).toFixed(1))};
+    updateChips();updateStatusView();return;
+  }
+  try{
+    const [cfg,sta,dev]=await Promise.all([
+      apiFetch('/config'),
+      apiFetch('/status'),
+      liveDevice.version?Promise.resolve(liveDevice):apiFetch('/deviceinfo'),
+    ]);
+    liveConfig=cfg; liveStatus=sta; if(!liveDevice.version)liveDevice=dev;
+    consecutiveFails=0;
+    setBanner(false);
+    setConnDot('live');
+    updateChips();
+    if(currentView==='status')updateStatusView();
+    if(el('last-update'))el('last-update').textContent='Updated '+now();
+  }catch(e){
+    consecutiveFails++;
+    setConnDot('error');
+    setBanner(true, consecutiveFails>=3
+      ? `✖ Node ${nodeIP} unreachable (${consecutiveFails} failures) — check network connection`
+      : `⚠ Fetch failed: ${e.message} — retrying in ${pollInterval/1000}s`
+    , consecutiveFails>=3);
+  }
+}
+
+async function postConfig(data){
+  if(isDemo){showSaved();return;}
+  try{
+    await apiFetch('/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    showSaved();
+  }catch(e){
+    setBanner(true,`✖ POST /config failed: ${e.message}`,true);
+  }
+}
+
+function showSaved(){
+  const btn=el('save-btn');if(!btn)return;
+  btn.textContent='✓ Saved';btn.classList.add('saved');
+  setTimeout(()=>{btn.textContent='POST Config';btn.classList.remove('saved');},2000);
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
+function setConnDot(state){
+  const dot=el('conn-dot'),txt=el('conn-txt');
+  dot.className='';
+  if(state==='live'){dot.style.background='#fff';dot.style.animation='pulse 2s infinite';txt.textContent='LIVE';}
+  else if(state==='error'){dot.style.background='#FF8A65';dot.style.animation='none';txt.textContent='RETRY';}
+  else{dot.style.background='#FFD54F';dot.style.animation='none';txt.textContent='CONNECTING';}
+}
+
+function setBanner(show,msg='',isError=false){
+  const b=el('api-banner');
+  if(!show){b.classList.remove('show','error');return;}
+  b.classList.add('show');
+  b.classList.toggle('error',isError);
+  el('banner-msg').textContent=msg;
+}
+
+function updateChips(){
+  const c=liveConfig,s=liveStatus;
+  if(!c.meshName)return;
+  el('c-status').textContent=isDemo?'DEMO':'ONLINE';
+  el('c-mesh').textContent=c.meshName||'–';
+  el('c-node').textContent=c.id??s.selfId??'–';
+  el('c-freq').textContent=fmtFreq(c.freqList?.[c.freqDefault]);
+  el('c-bw').textContent=BW_MAP[c.span]??'–';
+  el('c-mode').textContent=FREQ_MODES[c.freqMode]??c.freqMode??'–';
+  el('c-range').textContent=(c.rangeMode??'–')+' km';
+  el('c-enc').textContent=ENC_MAP[c.dataEncryptionMode]??'–';
+}
+
+// ── CONNECT ───────────────────────────────────────────────────────────────────
+async function doConnect(){
+  const ipVal=el('ip-input').value.trim();
+  const pollVal=parseInt(el('poll-input').value)||3;
+  if(!ipVal){showErr('Please enter a valid IP address.');return;}
+  nodeIP=ipVal; pollInterval=pollVal*1000; isDemo=false;
+  el('connect-btn').disabled=true;
+  el('connect-btn').textContent='Connecting…';
+  el('connect-err').style.display='none';
+  try{
+    const cfg=await apiFetch('/config');
+    const sta=await apiFetch('/status');
+    const dev=await apiFetch('/deviceinfo');
+    liveConfig=cfg; liveStatus=sta; liveDevice=dev;
+    launchDashboard();
+  }catch(e){
+    el('connect-btn').disabled=false;
+    el('connect-btn').textContent='Connect to Node';
+    showErr(`Cannot reach ${nodeIP} — ${e.message}. Check IP and network.`);
+  }
+}
+
+function doDemo(){
+  isDemo=true; nodeIP='DEMO';
+  liveConfig={...DEMO_CONFIG}; liveStatus={...DEMO_STATUS}; liveDevice={...DEMO_DEVICE};
+  launchDashboard();
+}
+
+function showErr(msg){
+  const e=el('connect-err');e.textContent=msg;e.style.display='block';
+}
+
+function launchDashboard(){
+  el('overlay').style.display='none';
+  setConnDot(isDemo?'live':'live');
+  updateChips();
+  nav('status',document.querySelector('.nav-item'));
+  startPolling();
+}
+
+function changeIP(){
+  stopPolling();
+  el('connect-btn').disabled=false;
+  el('connect-btn').textContent='Connect to Node';
+  el('overlay').style.display='flex';
+  setBanner(false);
+}
+
+// ── POLLING ───────────────────────────────────────────────────────────────────
+function startPolling(){fetchAll();pollTimer=setInterval(fetchAll,pollInterval);}
+function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
+
+// ── CANVAS ────────────────────────────────────────────────────────────────────
+function startCanvas(){
+  const wrap=el('canvas-wrap');if(!wrap)return;
+  let canvas=el('topo-canvas');
+  if(!canvas){canvas=document.createElement('canvas');canvas.id='topo-canvas';wrap.insertBefore(canvas,wrap.firstChild);}
+  const ro=new ResizeObserver(()=>{canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;});
+  ro.observe(wrap);
+  canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+
+  function buildPositions(nodes,selfId){
+    const pos={};
+    nodes.forEach(n=>{
+      if(n.id===selfId){pos[n.id]={x:.5,y:.44};}
+      else{
+        const others=nodes.filter(x=>x.id!==selfId);
+        const oi=others.indexOf(n);
+        const angles=[-0.6,0.6,Math.PI-0.6,Math.PI+0.6];
+        const a=angles[oi]??(oi*Math.PI*2/others.length);
+        pos[n.id]={x:.5+.3*Math.cos(a-Math.PI/2),y:.44+.28*Math.sin(a-Math.PI/2)};
+      }
+    });
+    return pos;
+  }
+
+  function draw(){
+    const s=liveStatus;
+    if(!s.nodeInfos){animId=requestAnimationFrame(draw);return;}
+    const nodes=s.nodeInfos, lq=s.linkQuality||[], selfId=s.selfId;
+    const pos=buildPositions(nodes,selfId);
+    const W=canvas.width,H=canvas.height;
+    const ctx=canvas.getContext('2d');
+    phase+=0.016;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#F8F9FA';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='rgba(86,93,101,.1)';
+    for(let gx=0;gx<W;gx+=28)for(let gy=0;gy<H;gy+=28){ctx.beginPath();ctx.arc(gx,gy,1,0,Math.PI*2);ctx.fill();}
+
+    nodes.forEach((na,i)=>nodes.forEach((nb,j)=>{
+      if(j<=i)return;
+      const snr=lq[i]?.[j]??-10;if(snr<=-10)return;
+      const pa=pos[na.id],pb=pos[nb.id];if(!pa||!pb)return;
+      const ax=pa.x*W,ay=pa.y*H,bx=pb.x*W,by=pb.y*H,col=snrColor(snr);
+      ctx.save();ctx.shadowBlur=8;ctx.shadowColor=col+'55';
+      const g=ctx.createLinearGradient(ax,ay,bx,by);
+      g.addColorStop(0,col+'88');g.addColorStop(.5,col+'dd');g.addColorStop(1,col+'88');
+      ctx.strokeStyle=g;ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.lineDashOffset=-phase*7;
+      ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.restore();
+      ctx.save();ctx.font='bold 9px Arial';ctx.fillStyle=col;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(snr+' dB',(ax+bx)/2,(ay+by)/2-9);ctx.restore();
+    }));
+
+    nodes.forEach(n=>{
+      const p=pos[n.id];if(!p)return;
+      const cx=p.x*W,cy=p.y*H,isSelf=n.id===selfId,R=isSelf?30:22;
+      if(isSelf){
+        const pr=R+10+5*Math.sin(phase*1.6);
+        ctx.save();ctx.beginPath();ctx.arc(cx,cy,pr,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(227,6,19,${.18+.1*Math.sin(phase)})`;ctx.lineWidth=2;ctx.stroke();ctx.restore();
+      }
+      ctx.save();ctx.shadowBlur=isSelf?20:10;ctx.shadowColor=isSelf?'#E3061388':'#565D6544';
+      const g=ctx.createRadialGradient(cx-R*.3,cy-R*.3,0,cx,cy,R);
+      if(isSelf){g.addColorStop(0,'#E30613');g.addColorStop(1,'#B71C1C');}
+      else{g.addColorStop(0,'#fff');g.addColorStop(1,'#E8EAEC');}
+      ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+      ctx.strokeStyle=isSelf?'#B71C1C':ST.mid;ctx.lineWidth=isSelf?2.5:1.5;ctx.stroke();ctx.restore();
+      ctx.save();ctx.font=`bold ${isSelf?13:12}px Arial`;ctx.fillStyle=isSelf?'#fff':ST.dark;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.id,cx,cy);ctx.restore();
+      ctx.save();ctx.font='9px Arial';ctx.fillStyle=isSelf?ST.red:'#8A9099';
+      ctx.textAlign='center';ctx.fillText('.'+n.ip.split('.').pop(),cx,cy+R+11);ctx.restore();
+    });
+    animId=requestAnimationFrame(draw);
+  }
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  draw();
+}
+
+function stopCanvas(){if(animId){cancelAnimationFrame(animId);animId=null;}}
+
+// ── VIEW: STATUS ──────────────────────────────────────────────────────────────
+function viewStatus(){
+  const s=liveStatus||{};
+  el('content').innerHTML=`
+<div style="display:flex;flex-direction:column;height:100%">
+  <div class="stat-cards">
+    <div class="card stat-card"><div class="stat-lbl">Nodes Online</div><div class="stat-val" id="sv-nodes" style="color:#E30613">${s.nodeNumber??'–'}</div></div>
+    <div class="card stat-card"><div class="stat-lbl">Temperature</div><div class="stat-val" id="sv-temp" style="color:#E65100">${s.temp??'–'}°C</div></div>
+    <div class="card stat-card"><div class="stat-lbl">Battery</div><div class="stat-val" id="sv-batt" style="color:#2E7D32">${s.batteryLevel===101?'EXT PWR':s.batteryLevel===−1?'–':(s.batteryLevel??'–')+'%'}</div></div>
+    <div class="card stat-card"><div class="stat-lbl">Self Node</div><div class="stat-val" style="color:#404040">${s.selfId??'–'}</div></div>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="topo-canvas"></canvas>
+    <div id="map-legend">
+      <div class="leg-title">LINK QUALITY</div>
+      <div class="leg-row"><div class="leg-line" style="background:#E30613"></div><span class="leg-lbl">Excellent (25+)</span></div>
+      <div class="leg-row"><div class="leg-line" style="background:#2E7D32"></div><span class="leg-lbl">Good (15–25)</span></div>
+      <div class="leg-row"><div class="leg-line" style="background:#E65100"></div><span class="leg-lbl">Fair (5–15)</span></div>
+      <div class="leg-row"><div class="leg-line" style="background:#CFD2D5"></div><span class="leg-lbl">No Link</span></div>
+    </div>
+    <div id="self-badge">◉ Self = Node ${s.selfId??'–'}</div>
+    <div id="last-update">Updated ${now()}</div>
+  </div>
+  <div class="delay-strip">
+    <span class="delay-lbl">TX Delay:</span>
+    <div id="delay-chips">${renderDelayChips(s.transmissionDelay)}</div>
+  </div>
+</div>`;
+  startCanvas();
+}
+
+function updateStatusView(){
+  const s=liveStatus;if(!s.nodeInfos)return;
+  if(el('sv-nodes'))el('sv-nodes').textContent=s.nodeNumber??'–';
+  if(el('sv-temp'))el('sv-temp').textContent=(s.temp??'–')+'°C';
+  if(el('sv-batt'))el('sv-batt').textContent=s.batteryLevel===101?'EXT PWR':(s.batteryLevel??'–')+'%';
+  if(el('delay-chips'))el('delay-chips').innerHTML=renderDelayChips(s.transmissionDelay);
+  if(el('last-update'))el('last-update').textContent='Updated '+now();
+}
+
+function renderDelayChips(delays){
+  if(!delays||!delays.length)return'<span style="color:#8A9099;font-size:11px">No delay data</span>';
+  return delays.map(d=>`<div class="delay-chip"><span style="color:#565D65">Node ${d.id}</span><span style="color:#404040;font-weight:700">${d.delay*10} ns</span><span style="color:#8A9099;font-size:10px">${((d.delay/100000000)*299792.458).toFixed(2)} km</span></div>`).join('');
+}
+
+// ── VIEW: TOPOLOGY TABLE ──────────────────────────────────────────────────────
+function viewTopoTable(){
+  const s=liveStatus;
+  if(!s.nodeInfos){el('content').innerHTML='<div class="placeholder" style="height:100%"><div class="ph-title">No Status Data</div><div class="ph-sub">Waiting for /status response</div></div>';return;}
+  const nodes=s.nodeInfos, lq=s.linkQuality||[];
+  const pill=snr=>snr<=-10?'<span style="color:#CFD2D5">–</span>':`<span class="snr-pill" style="background:${snrColor(snr)}18;color:${snrColor(snr)};border:1px solid ${snrColor(snr)}55">${snr} dB</span>`;
+  el('content').innerHTML=`
+<div class="panel-pad">
+  <div class="sec-title">Link Quality Matrix (dB SNR)</div>
+  <div class="card" style="overflow:hidden;margin-bottom:24px">
+    <table>
+      <thead><tr><th>TX \\ RX</th>${nodes.map(n=>`<th style="text-align:center">Node ${n.id}</th>`).join('')}</tr></thead>
+      <tbody>${nodes.map((na,i)=>`<tr><td style="font-weight:700;color:#E30613">Node ${na.id}</td>${nodes.map((nb,j)=>i===j?'<td style="text-align:center"><span style="color:#CFD2D5">—</span></td>':`<td style="text-align:center">${pill(lq[i]?.[j]??-10)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>
+  </div>
+  <div class="sec-title">Node Details</div>
+  <div class="card" style="overflow:hidden">
+    <table>
+      <thead><tr><th>Node ID</th><th>IP Address</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Resource Ratio</th></tr></thead>
+      <tbody>${nodes.map(n=>`<tr>
+        <td style="font-weight:700;color:#E30613">${n.id}</td><td>${n.ip}</td>
+        <td>${n.latitude===undefined||n.latitude===-90?'–':n.latitude.toFixed(4)}</td>
+        <td>${n.longitude===undefined||n.longitude===-180?'–':n.longitude.toFixed(4)}</td>
+        <td>${n.altitude??'–'} m</td>
+        <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${(n.resourceRatio??0)*100}%"></div></div><span style="font-weight:700;width:34px">${((n.resourceRatio??0)*100).toFixed(0)}%</span></div></td>
+      </tr>`).join('')}</tbody>
+    </table>
+  </div>
+</div>`;
+}
+
+// ── VIEW: RF ──────────────────────────────────────────────────────────────────
+function viewRF(){
+  const c=liveConfig||DEMO_CONFIG;
+  const freq=fmtFreq(c.freqList?.[c.freqDefault]);
+  el('content').innerHTML=`
+<div class="panel-pad">
+  <div class="sec-title">RF Configuration</div>
+  <div class="rf-grid">
+    ${[['Operating Frequency',freq],['Bandwidth',BW_MAP[c.span]??'–'],['Frequency Mode',FREQ_MODES[c.freqMode]??c.freqMode??'–'],['RF1 Attenuation',(c.pwAtten1??'–')+' dB'],['RF2 Attenuation',(c.pwAtten2??'–')+' dB'],['Max TX Power',(liveDevice.powerMax??27)+' dBm']].map(([l,v])=>`<div class="card rf-card"><div class="rf-lbl">${l}</div><div class="rf-val">${v}</div></div>`).join('')}
+  </div>
+  <div class="sec-title">Node IP — ${nodeIP}</div>
+  <div class="card" style="padding:16px 20px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px">
+      <div><span style="color:#8A9099">IP Address: </span><strong>${c.ip??'–'}</strong></div>
+      <div><span style="color:#8A9099">Subnet: </span><strong>${c.nwMask??'–'}</strong></div>
+      <div><span style="color:#8A9099">Gateway: </span><strong>${c.gateway||'–'}</strong></div>
+      <div><span style="color:#8A9099">Range Mode: </span><strong>${c.rangeMode??'–'} km</strong></div>
+      <div><span style="color:#8A9099">Freq Index: </span><strong>${c.freqDefault??0}</strong></div>
+      <div><span style="color:#8A9099">Encryption: </span><strong>${ENC_MAP[c.dataEncryptionMode]??'–'}</strong></div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── VIEW: DEVICE ──────────────────────────────────────────────────────────────
+function viewDevice(){
+  const d=liveDevice||DEMO_DEVICE, li=d.licenseinfo||{};
+  const feats=[['AES-256',li.dataEncryptionAES256],['AES-128',li.dataEncryptionAES128],['FHSS',li.freqHopping],['SMART',li.freqSmart],['SMART(A)',li.freqSmartAdvanced],['FHSS(A)',li.adaptiveFreqHopping],['Wi-Fi',li.wifi],['Silence',li.silence]];
+  el('content').innerHTML=`
+<div class="panel-pad">
+  <div class="dev-grid">
+    <div class="card" style="padding:20px">
+      <div class="sec-title">Device Identity</div>
+      ${[['Device Type',d.deviceType??'–'],['ESN',(d.deviceSn??'').slice(0,16)+'…'],['Firmware',(d.version??'–').trim()],['Chip Level',d.chipLevel??'–']].map(([k,v])=>`<div class="kv-row"><span class="kv-k">${k}</span><span class="kv-v">${v}</span></div>`).join('')}
+    </div>
+    <div class="card" style="padding:20px">
+      <div class="sec-title">RF Parameters</div>
+      ${[['Freq Range',`${fmtFreq(d.freqMin)} – ${fmtFreq(d.freqMax)}`],['Max Power',(d.powerMax??'–')+' dBm'],['RF1 Ref Att.',(d.powerMaxAtten??7)+' dB'],['Waveform',li.supportedWaveform===3?'Wideband + NB':li.supportedWaveform===1?'Wideband':li.supportedWaveform===2?'Narrowband':'–']].map(([k,v])=>`<div class="kv-row"><span class="kv-k">${k}</span><span class="kv-v">${v}</span></div>`).join('')}
+    </div>
+  </div>
+  <div class="sec-title">Licence Features</div>
+  <div class="feat-grid">${feats.map(([n,a])=>`<div class="feat ${a?'on':'off'}"><div class="feat-dot"></div>${n}</div>`).join('')}</div>
+  <div class="big-grid">
+    <div class="card big-card"><div class="big-lbl">Max Nodes</div><div class="big-val">${li.maxNodeNum??'–'}</div></div>
+    <div class="card big-card"><div class="big-lbl">Max Throughput</div><div class="big-val">${li.maxThroughput?(li.maxThroughput/1000)+' Mbps':'–'}</div></div>
+  </div>
+</div>`;
+}
+
+// ── VIEW: BASIC CONFIG ────────────────────────────────────────────────────────
+function viewBasic(){
+  const c=liveConfig||DEMO_CONFIG;
+  el('content').innerHTML=`
+<div class="panel-pad">
+  <div class="settings-grid">
+    <div class="card" style="padding:20px">
+      <div class="sec-title">Basic Config <span style="font-size:9px;color:#8A9099;font-weight:400;letter-spacing:0">POST → http://${nodeIP}/config</span></div>
+      <div class="field"><label>Mesh ID</label><input id="f-mesh" value="${c.meshName??''}"/></div>
+      <div class="field"><label>Node ID</label><input id="f-id" type="number" value="${c.id??''}"/></div>
+      <div class="field"><label>IP Address</label><input id="f-ip" value="${c.ip??''}"/></div>
+      <div class="field"><label>Subnet Mask</label><input id="f-mask" value="${c.nwMask??''}"/></div>
+      <div class="field"><label>Max Range (km)</label><input id="f-range" value="${c.rangeMode??''}"/></div>
+    </div>
+    <div class="card" style="padding:20px">
+      <div class="sec-title">RF Config</div>
+      <div class="field"><label>Frequency Mode</label>
+        <select id="f-fmode">${Object.entries(FREQ_MODES).map(([v,l])=>`<option value="${v}"${c.freqMode===v?' selected':''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Bandwidth</label>
+        <select id="f-span">${Object.entries(BW_MAP).map(([v,l])=>`<option value="${v}"${c.span==v?' selected':''}>${l}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>RF1 Attenuation (dB)</label><input id="f-pw1" type="number" value="${c.pwAtten1??0}" min="0" max="89"/></div>
+      <div class="field"><label>RF2 Attenuation (dB)</label><input id="f-pw2" type="number" value="${c.pwAtten2??0}" min="0" max="89"/></div>
+      <div class="field"><label>Encryption</label>
+        <select id="f-enc">${Object.entries(ENC_MAP).map(([v,l])=>`<option value="${v}"${c.dataEncryptionMode==v?' selected':''}>${l}</option>`).join('')}</select>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:20px;display:flex;gap:12px;align-items:center">
+    <button class="btn-red" id="save-btn" onclick="submitConfig()">POST Config</button>
+    <button class="btn-grey" onclick="viewBasic()">Reset</button>
+    ${isDemo?'<span style="font-size:11px;color:#8A9099">Demo mode — POST simulated</span>':''}
+  </div>
+</div>`;
+}
+
+function submitConfig(){
+  const payload={
+    meshName:el('f-mesh').value, id:parseInt(el('f-id').value),
+    ip:el('f-ip').value, nwMask:el('f-mask').value,
+    rangeMode:el('f-range').value, freqMode:el('f-fmode').value,
+    span:parseInt(el('f-span').value), pwAtten1:parseInt(el('f-pw1').value),
+    pwAtten2:parseInt(el('f-pw2').value), dataEncryptionMode:parseInt(el('f-enc').value),
+  };
+  Object.assign(liveConfig,payload);
+  updateChips();
+  postConfig(payload);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function nav(id,btn){
+  stopCanvas();
+  currentView=id;
+  document.querySelectorAll('.nav-item,.nav-child').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  setBanner(false);
+  const views={status:viewStatus,'topo-link':()=>{el('content').innerHTML=`<div style="height:100%;background:#F8F9FA"><div id="canvas-wrap" style="height:100%;margin:0;border-radius:0;border:none"><canvas id="topo-canvas"></canvas><div id="self-badge">◉ Self = Node ${liveStatus.selfId??'–'}</div></div></div>`;startCanvas();},'topo-table':viewTopoTable,rf:viewRF,'dev-about':viewDevice,'net-basic':viewBasic};
+  const labels={topology:'Topology',network:'Network',security:'Security',device:'Device Info','net-global':'Global Settings','net-advance':'Advanced Config','net-rf':'RF Settings','net-data':'Data Settings','net-uart':'UART Configuration','net-audio':'Audio Settings','net-gps':'GPS Settings','sec-enc':'Encryption','sec-login':'Login Settings','dev-update':'Firmware Update'};
+  if(views[id])views[id]();
+  else el('content').innerHTML=`<div class="placeholder" style="height:100%"><div class="ph-icon"><div style="width:16px;height:16px;background:#D8DADC;border-radius:50%"></div></div><div class="ph-title">${(labels[id]??id).toUpperCase()}</div><div class="ph-sub">Panel available in full deployment</div></div>`;
+}
+
+function tog(gid,btn,aid){
+  const g=el(gid),open=g.style.display==='none';
+  g.style.display=open?'block':'none';
+  el(aid).textContent=open?'▾':'▸';
+}
+</script>
+</body>
+</html>
