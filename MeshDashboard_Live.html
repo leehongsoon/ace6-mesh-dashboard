@@ -7,10 +7,12 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#F4F5F6;color:#404040;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-#overlay{position:fixed;inset:0;background:rgba(64,64,64,.85);display:flex;align-items:center;justify-content:center;z-index:999}
-#connect-box{background:#fff;border-radius:6px;padding:36px 40px;width:380px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+/* ── OVERLAYS ── */
+.overlay{position:fixed;inset:0;background:rgba(64,64,64,.85);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal-box{background:#fff;border-radius:6px;padding:36px 40px;width:400px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
 .co-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.co-sq{width:34px;height:34px;background:#E30613;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px}
+.co-sq{width:34px;height:34px;background:#E30613;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:14px;flex-shrink:0}
 .co-title{font-size:15px;font-weight:700;color:#404040}
 .co-sub{font-size:11px;color:#8A9099;margin-top:2px}
 .co-field{margin-bottom:16px}
@@ -18,12 +20,19 @@ body{font-family:Arial,sans-serif;background:#F4F5F6;color:#404040;height:100vh;
 .co-field input{width:100%;border:1px solid #D8DADC;border-radius:3px;padding:9px 12px;font-size:13px;color:#404040;outline:none;font-family:Arial,sans-serif}
 .co-field input:focus{border-color:#E30613}
 .co-hint{font-size:10px;color:#8A9099;margin-top:4px}
-#connect-btn{width:100%;padding:11px;background:#E30613;border:none;border-radius:3px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;margin-top:4px}
-#connect-btn:hover{background:#B71C1C}
-#connect-btn:disabled{background:#CFD2D5;cursor:not-allowed}
-#connect-err{color:#E30613;font-size:11px;margin-top:10px;display:none;text-align:center}
-#demo-btn{width:100%;padding:9px;background:transparent;border:1px solid #D8DADC;border-radius:3px;color:#565D65;font-size:12px;cursor:pointer;font-family:Arial,sans-serif;margin-top:8px}
-#demo-btn:hover{border-color:#565D65;color:#404040}
+.btn-full{width:100%;padding:11px;background:#E30613;border:none;border-radius:3px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;margin-top:4px}
+.btn-full:hover{background:#B71C1C}
+.btn-full:disabled{background:#CFD2D5;cursor:not-allowed}
+.btn-full.green{background:#2E7D32}
+.btn-full.green:hover{background:#1B5E20}
+.btn-outline{width:100%;padding:9px;background:transparent;border:1px solid #D8DADC;border-radius:3px;color:#565D65;font-size:12px;cursor:pointer;font-family:Arial,sans-serif;margin-top:8px}
+.btn-outline:hover{border-color:#565D65;color:#404040}
+.modal-err{color:#E30613;font-size:11px;margin-top:10px;display:none;text-align:center;padding:8px;background:#FFEBEE;border-radius:3px}
+.modal-ok{color:#2E7D32;font-size:11px;margin-top:10px;display:none;text-align:center;padding:8px;background:#E8F5E9;border-radius:3px}
+.modal-divider{border:none;border-top:1px solid #D8DADC;margin:20px 0}
+.modal-link{color:#E30613;font-size:11px;cursor:pointer;text-align:center;display:block;margin-top:12px;text-decoration:underline}
+
+/* ── TOP BAR ── */
 #topbar{height:52px;background:#E30613;display:flex;align-items:center;padding:0 16px;gap:6px;box-shadow:0 2px 8px rgba(227,6,19,.35);flex-shrink:0;overflow-x:auto}
 .brand{display:flex;align-items:center;gap:8px;margin-right:12px;flex-shrink:0}
 .brand .sq{width:28px;height:28px;background:rgba(255,255,255,.22);border-radius:2px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:12px}
@@ -35,9 +44,16 @@ body{font-family:Arial,sans-serif;background:#F4F5F6;color:#404040;height:100vh;
 #conn-dot{width:7px;height:7px;border-radius:50%;background:#FFD54F}
 #conn-txt{color:rgba(255,255,255,.85);font-size:10px;font-weight:700;letter-spacing:1.5px}
 #change-ip{background:rgba(255,255,255,.18);border:none;color:#fff;font-size:10px;padding:4px 10px;border-radius:12px;cursor:pointer;font-family:Arial,sans-serif}
-#api-banner{display:none;background:#FFF3E0;border-bottom:1px solid #FFB74D;padding:7px 20px;font-size:11px;color:#E65100;align-items:center;gap:8px}
+#logged-user{color:rgba(255,255,255,.75);font-size:10px;padding:4px 10px;border-radius:12px;background:rgba(255,255,255,.12)}
+
+/* ── API BANNER ── */
+#api-banner{display:none;padding:7px 20px;font-size:11px;align-items:center;gap:8px;flex-shrink:0}
 #api-banner.show{display:flex}
-#api-banner.err{background:#FFEBEE;border-color:#EF9A9A;color:#B71C1C}
+#api-banner.warn{background:#FFF3E0;border-bottom:1px solid #FFB74D;color:#E65100}
+#api-banner.err{background:#FFEBEE;border-bottom:1px solid #EF9A9A;color:#B71C1C}
+#api-banner.ok{background:#E8F5E9;border-bottom:1px solid #A5D6A7;color:#2E7D32}
+
+/* ── BODY ── */
 #body{flex:1;display:flex;overflow:hidden}
 #sidebar{width:190px;flex-shrink:0;background:#404040;display:flex;flex-direction:column;overflow-y:auto}
 .nav-sec{padding:16px 16px 6px;color:rgba(255,255,255,.28);font-size:9px;font-weight:700;letter-spacing:2px}
@@ -48,8 +64,11 @@ body{font-family:Arial,sans-serif;background:#F4F5F6;color:#404040;height:100vh;
 .nav-child:hover{color:rgba(255,255,255,.7)}
 .nav-child.active{background:rgba(227,6,19,.2);border-left-color:#E30613;color:#fff;font-weight:600}
 .nav-arrow{margin-left:auto;font-size:9px}
-#logout-btn{margin:auto 12px 12px;padding:9px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.38);cursor:pointer;font-size:11px;font-family:Arial,sans-serif;width:calc(100% - 24px)}
+#logout-btn{margin:auto 12px 12px;padding:9px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;font-family:Arial,sans-serif;width:calc(100% - 24px)}
+#logout-btn:hover{color:#fff;border-color:rgba(255,255,255,.4)}
 #content{flex:1;overflow:auto;display:flex;flex-direction:column}
+
+/* ── SHARED ── */
 .card{background:#fff;border:1px solid #D8DADC;border-radius:4px}
 .sec-title{font-size:10px;font-weight:700;color:#565D65;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:6px;border-bottom:2px solid #E30613;display:inline-block}
 .panel-pad{padding:24px}
@@ -106,6 +125,16 @@ td{padding:8px 14px;color:#404040;border-top:1px solid #D8DADC}
 .ph-icon{width:44px;height:44px;border:2px solid #D8DADC;border-radius:50%;margin-bottom:16px;display:flex;align-items:center;justify-content:center}
 .ph-title{font-size:13px;font-weight:700;color:#565D65;letter-spacing:1px}
 .ph-sub{font-size:11px;color:#CFD2D5;margin-top:6px}
+
+/* ── SECURITY PANEL ── */
+.sec-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.sec-status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:20px}
+.sec-status-badge.set{background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+.sec-status-badge.unset{background:#FFEBEE;color:#E30613;border:1px solid #FFCDD2}
+.sec-status-dot{width:8px;height:8px;border-radius:50%}
+.sec-status-badge.set .sec-status-dot{background:#2E7D32}
+.sec-status-badge.unset .sec-status-dot{background:#E30613}
+
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:#F4F5F6}
@@ -115,8 +144,9 @@ button:focus{outline:none}
 </head>
 <body>
 
-<div id="overlay">
-  <div id="connect-box">
+<!-- ── STEP 1: CONNECT OVERLAY ── -->
+<div id="ov-connect" class="overlay">
+  <div class="modal-box">
     <div class="co-logo">
       <div class="co-sq">ST</div>
       <div>
@@ -127,19 +157,72 @@ button:focus{outline:none}
     <div class="co-field">
       <label>Node IP Address</label>
       <input id="ip-input" type="text" placeholder="192.168.10.5" value="192.168.10.5"/>
-      <div class="co-hint">Enter the IP address of the local mesh node to connect to</div>
+      <div class="co-hint">IP address of the local mesh node</div>
     </div>
     <div class="co-field">
       <label>Poll Interval (seconds)</label>
       <input id="poll-input" type="number" value="3" min="1" max="30"/>
-      <div class="co-hint">How often to refresh live status data (recommended: 3s)</div>
+      <div class="co-hint">How often to refresh live status (recommended: 3s)</div>
     </div>
-    <button id="connect-btn" onclick="doConnect()">Connect to Node</button>
-    <div id="connect-err"></div>
-    <button id="demo-btn" onclick="doDemo()">&#9654; Run with Demo Data (offline)</button>
+    <button id="connect-btn" class="btn-full" onclick="doConnect()">Connect to Node</button>
+    <div id="connect-err" class="modal-err"></div>
+    <button class="btn-outline" onclick="doDemo()">&#9654; Run with Demo Data (offline)</button>
   </div>
 </div>
 
+<!-- ── STEP 2: LOGIN OVERLAY ── -->
+<div id="ov-login" class="overlay" style="display:none">
+  <div class="modal-box">
+    <div class="co-logo">
+      <div class="co-sq">ST</div>
+      <div>
+        <div class="co-title">Login Required</div>
+        <div class="co-sub" id="login-node-label">Node: –</div>
+      </div>
+    </div>
+    <div class="co-field">
+      <label>Password</label>
+      <input id="login-pw" type="password" placeholder="Enter password" value=""/>
+      <div class="co-hint">Default password is: admin</div>
+    </div>
+    <button id="login-btn" class="btn-full" onclick="doLogin()">Login</button>
+    <div id="login-err" class="modal-err"></div>
+    <hr class="modal-divider"/>
+    <span class="modal-link" onclick="showSetupOverlay()">First time? Set up password protection</span>
+    <span class="modal-link" style="margin-top:6px" onclick="showChangeIP()">&#8592; Change node IP</span>
+  </div>
+</div>
+
+<!-- ── STEP 2b: FIRST-TIME SETUP OVERLAY ── -->
+<div id="ov-setup" class="overlay" style="display:none">
+  <div class="modal-box">
+    <div class="co-logo">
+      <div class="co-sq">ST</div>
+      <div>
+        <div class="co-title">Set Up Password Protection</div>
+        <div class="co-sub">POST /questionSet</div>
+      </div>
+    </div>
+    <div class="co-field">
+      <label>Current Password</label>
+      <input id="setup-pw" type="password" placeholder="admin (default)" value="admin"/>
+    </div>
+    <div class="co-field">
+      <label>Security Question 1</label>
+      <input id="setup-q1" type="text" placeholder="e.g. My unit callsign"/>
+    </div>
+    <div class="co-field">
+      <label>Security Question 2</label>
+      <input id="setup-q2" type="text" placeholder="e.g. My node serial number"/>
+    </div>
+    <button id="setup-btn" class="btn-full" onclick="doSetup()">Save Security Setup</button>
+    <div id="setup-err" class="modal-err"></div>
+    <div id="setup-ok" class="modal-ok"></div>
+    <span class="modal-link" onclick="showLoginOverlay()">&#8592; Back to Login</span>
+  </div>
+</div>
+
+<!-- ── TOP BAR ── -->
 <div id="topbar">
   <div class="brand"><div class="sq">ST</div><span>ST ENGINEERING - ACE6 MESH</span></div>
   <div class="chip"><span class="cl">STATUS</span><span class="cv" id="c-status">-</span></div>
@@ -151,16 +234,18 @@ button:focus{outline:none}
   <div class="chip"><span class="cl">RANGE</span><span class="cv" id="c-range">-</span></div>
   <div class="chip"><span class="cl">ENCRYPT</span><span class="cv" id="c-enc">-</span></div>
   <div id="tb-right">
+    <span id="logged-user" style="display:none"></span>
     <div style="display:flex;align-items:center;gap:6px">
       <div id="conn-dot"></div>
       <span id="conn-txt">WAITING</span>
     </div>
-    <button id="change-ip" onclick="changeIP()">Change IP</button>
+    <button id="change-ip" onclick="showChangeIP()">Change IP</button>
   </div>
 </div>
 
 <div id="api-banner"><span id="banner-msg"></span></div>
 
+<!-- ── BODY ── -->
 <div id="body">
   <div id="sidebar">
     <div class="nav-sec">NAVIGATION</div>
@@ -184,15 +269,15 @@ button:focus{outline:none}
     </div>
     <button class="nav-item" onclick="navTo('security',this);togGroup('g-sec','a-sec')">Security <span class="nav-arrow" id="a-sec">&#9658;</span></button>
     <div id="g-sec" style="display:none">
-      <button class="nav-child" onclick="navTo('sec-enc',this)">Encryption</button>
-      <button class="nav-child" onclick="navTo('sec-login',this)">Login</button>
+      <button class="nav-child" onclick="navTo('sec-password',this)">Change Password</button>
+      <button class="nav-child" onclick="navTo('sec-setup',this)">Security Setup</button>
     </div>
     <button class="nav-item" onclick="navTo('device',this);togGroup('g-dev','a-dev')">Device Info <span class="nav-arrow" id="a-dev">&#9658;</span></button>
     <div id="g-dev" style="display:none">
       <button class="nav-child" onclick="navTo('dev-about',this)">About</button>
       <button class="nav-child" onclick="navTo('dev-update',this)">Update</button>
     </div>
-    <button id="logout-btn">Logout</button>
+    <button id="logout-btn" onclick="doLogout()">Logout</button>
   </div>
   <div id="content"></div>
 </div>
@@ -201,554 +286,599 @@ button:focus{outline:none}
 var FREQ_MODES = {single:"SINGLE",roaming:"ROAMING",hop:"FHSS",hop2:"FHSS(L)",smart:"SMART",adaptiveHopping:"FHSS(A)",smartAdvanced:"SMART(A)",hopfdma:"FDMA(H)"};
 var BW_MAP = {"0":"2.5 MHz","1":"5 MHz","2":"10 MHz","3":"20 MHz","6":"300 KHz","7":"30 MHz","8":"1.25 MHz","9":"250 KHz","10":"500 KHz","11":"1 MHz"};
 var ENC_MAP = {"0":"None","1":"AES-256","2":"AES-128","3":"DES"};
-var ST_RED="#E30613", ST_GREEN="#2E7D32", ST_AMBER="#E65100", ST_MUTED="#CFD2D5", ST_MID="#565D65", ST_DARK="#404040";
 
 var DEMO_CONFIG = {freqMode:"smart",freqDefault:0,freqList:[1200000000,1250000000,1300000000],span:2,meshName:"ZENITH-NET",id:5,ip:"192.168.10.5",nwMask:"255.255.255.0",rangeMode:"10",dataEncryptionMode:1,pwAtten1:10,pwAtten2:10};
 var DEMO_STATUS = {nodeNumber:5,selfId:5,ip:"192.168.10.5",temp:58.4,batteryLevel:82,silenced:false,nodeInfos:[{id:1,ip:"192.168.10.1",latitude:1.2855,longitude:103.812,altitude:45,resourceRatio:0.52},{id:3,ip:"192.168.10.3",latitude:1.2848,longitude:103.8115,altitude:38,resourceRatio:0.48},{id:5,ip:"192.168.10.5",latitude:1.2852,longitude:103.8119,altitude:51,resourceRatio:0.61},{id:7,ip:"192.168.10.7",latitude:1.2862,longitude:103.8124,altitude:33,resourceRatio:0.44},{id:9,ip:"192.168.10.9",latitude:1.2843,longitude:103.8109,altitude:29,resourceRatio:0.39}],linkQuality:[[-10,-10,24,-10,18],[-10,-10,-10,22,-10],[24,-10,-10,26,21],[-10,22,26,-10,-10],[18,-10,21,-10,-10]],transmissionDelay:[{id:1,delay:127},{id:3,delay:203},{id:7,delay:89},{id:9,delay:156}]};
 var DEMO_DEVICE = {version:"2.12.1-rc10-M1022",deviceType:"M1022",deviceSn:"21cf0d82dff53a91a4cfa76111b07a9f",freqMax:1500000000,freqMin:1200000000,powerMax:27,chipLevel:0,powerMaxAtten:7,licenseinfo:{maxNodeNum:64,maxThroughput:50000,freqHopping:true,freqSmart:true,freqSmartAdvanced:true,adaptiveFreqHopping:true,dataEncryptionAES256:true,dataEncryptionAES128:true,wifi:true,silence:true,supportedWaveform:3}};
 
-var nodeIP = "";
-var pollIntervalMs = 3000;
-var pollTimer = null;
-var animId = null;
-var phase = 0;
-var isDemo = false;
-var consecutiveFails = 0;
-var liveConfig = {};
-var liveStatus = {};
-var liveDevice = {};
+var nodeIP = "", pollIntervalMs = 3000, pollTimer = null, animId = null, phase = 0;
+var isDemo = false, consecutiveFails = 0, demoTick = 0;
+var liveConfig = {}, liveStatus = {}, liveDevice = {};
 var currentView = "status";
-var demoTick = 0;
+var isLoggedIn = false;
 
-function fmtFreq(hz) {
-  if (!hz) return "-";
-  if (hz >= 1e9) return (hz / 1e9).toFixed(3) + " GHz";
-  if (hz >= 1e6) return (hz / 1e6).toFixed(1) + " MHz";
-  return hz + " Hz";
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function fmtFreq(hz){if(!hz)return"-";if(hz>=1e9)return(hz/1e9).toFixed(3)+" GHz";if(hz>=1e6)return(hz/1e6).toFixed(1)+" MHz";return hz+" Hz";}
+function snrColor(s){return s<=-10?"#CFD2D5":s<10?"#E65100":s<20?"#2E7D32":"#E30613";}
+function g(id){return document.getElementById(id);}
+function nowStr(){return new Date().toLocaleTimeString();}
+
+function setDot(state){
+  var dot=g("conn-dot"),txt=g("conn-txt");
+  if(state==="live"){dot.style.cssText="width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 2s infinite";txt.textContent=isDemo?"DEMO":"LIVE";}
+  else if(state==="error"){dot.style.cssText="width:7px;height:7px;border-radius:50%;background:#FF8A65";txt.textContent="RETRY";}
+  else{dot.style.cssText="width:7px;height:7px;border-radius:50%;background:#FFD54F";txt.textContent="CONNECTING";}
 }
 
-function snrColor(s) {
-  if (s <= -10) return ST_MUTED;
-  if (s < 10) return ST_AMBER;
-  if (s < 20) return ST_GREEN;
-  return ST_RED;
+function setBanner(type, msg){
+  var b=g("api-banner");
+  if(!type){b.className="";b.style.display="none";return;}
+  b.style.display="flex";
+  b.className=type;
+  g("banner-msg").textContent=msg;
 }
 
-function g(id) { return document.getElementById(id); }
+function showModalErr(errId, msg){var e=g(errId);e.textContent=msg;e.style.display="block";}
+function hideModalErr(errId){g(errId).style.display="none";}
+function showModalOk(okId, msg){var e=g(okId);e.textContent=msg;e.style.display="block";}
 
-function nowStr() { return new Date().toLocaleTimeString(); }
-
-function setDot(state) {
-  var dot = g("conn-dot");
-  var txt = g("conn-txt");
-  if (state === "live") {
-    dot.style.cssText = "width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 2s infinite";
-    txt.textContent = isDemo ? "DEMO" : "LIVE";
-  } else if (state === "error") {
-    dot.style.cssText = "width:7px;height:7px;border-radius:50%;background:#FF8A65";
-    txt.textContent = "RETRY";
-  } else {
-    dot.style.cssText = "width:7px;height:7px;border-radius:50%;background:#FFD54F";
-    txt.textContent = "CONNECTING";
-  }
+function updateChips(){
+  var c=liveConfig,s=liveStatus;
+  g("c-status").textContent=isDemo?"DEMO":"ONLINE";
+  g("c-mesh").textContent=c.meshName||"-";
+  g("c-node").textContent=(c.id!==undefined?c.id:(s.selfId!==undefined?s.selfId:"-"));
+  g("c-freq").textContent=fmtFreq(c.freqList?c.freqList[c.freqDefault||0]:null);
+  g("c-bw").textContent=BW_MAP[String(c.span)]||"-";
+  g("c-mode").textContent=FREQ_MODES[c.freqMode]||c.freqMode||"-";
+  g("c-range").textContent=(c.rangeMode||"-")+" km";
+  g("c-enc").textContent=ENC_MAP[String(c.dataEncryptionMode)]||"-";
 }
 
-function setBanner(show, msg, isErr) {
-  var b = g("api-banner");
-  if (!show) { b.className = ""; b.style.display = "none"; return; }
-  b.style.display = "flex";
-  b.className = isErr ? "err" : "";
-  b.style.background = isErr ? "#FFEBEE" : "#FFF3E0";
-  b.style.borderBottom = isErr ? "1px solid #EF9A9A" : "1px solid #FFB74D";
-  b.style.color = isErr ? "#B71C1C" : "#E65100";
-  b.style.padding = "7px 20px";
-  b.style.fontSize = "11px";
-  b.style.alignItems = "center";
-  g("banner-msg").textContent = msg;
-}
-
-function updateChips() {
-  var c = liveConfig;
-  var s = liveStatus;
-  g("c-status").textContent = isDemo ? "DEMO" : "ONLINE";
-  g("c-mesh").textContent = c.meshName || "-";
-  g("c-node").textContent = (c.id !== undefined ? c.id : (s.selfId !== undefined ? s.selfId : "-"));
-  g("c-freq").textContent = fmtFreq(c.freqList ? c.freqList[c.freqDefault || 0] : null);
-  g("c-bw").textContent = BW_MAP[String(c.span)] || "-";
-  g("c-mode").textContent = FREQ_MODES[c.freqMode] || c.freqMode || "-";
-  g("c-range").textContent = (c.rangeMode || "-") + " km";
-  g("c-enc").textContent = ENC_MAP[String(c.dataEncryptionMode)] || "-";
-}
-
-function apiFetch(path, opts) {
-  var url = "http://" + nodeIP + path;
-  return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.timeout = 5000;
-    xhr.open(opts && opts.method ? opts.method : "GET", url);
-    if (opts && opts.body) {
-      xhr.setRequestHeader("Content-Type", "application/json");
-    }
-    xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        if (opts && opts.method === "POST") {
-          resolve({ok: true});
-        } else {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch(e) { reject(new Error("Invalid JSON")); }
-        }
+// ── XHR WRAPPER ──────────────────────────────────────────────────────────────
+function xhr(method, url, body, contentType){
+  return new Promise(function(resolve, reject){
+    var x=new XMLHttpRequest();
+    x.timeout=6000;
+    x.open(method, url);
+    if(contentType) x.setRequestHeader("Content-Type", contentType);
+    x.onload=function(){
+      if(x.status>=200&&x.status<300){
+        try{resolve(JSON.parse(x.responseText));}
+        catch(e){resolve({ok:true});}
       } else {
-        reject(new Error("HTTP " + xhr.status));
+        reject(new Error("HTTP "+x.status));
       }
     };
-    xhr.onerror = function() { reject(new Error("Network error")); };
-    xhr.ontimeout = function() { reject(new Error("Timeout")); };
-    xhr.send(opts && opts.body ? opts.body : null);
+    x.onerror=function(){reject(new Error("Network error"));};
+    x.ontimeout=function(){reject(new Error("Timeout"));};
+    x.send(body||null);
   });
 }
 
-function fetchAll() {
-  if (isDemo) {
-    demoTick++;
-    liveStatus = JSON.parse(JSON.stringify(DEMO_STATUS));
-    liveStatus.temp = parseFloat((58.4 + Math.sin(demoTick * 0.3) * 0.4).toFixed(1));
-    updateChips();
-    if (currentView === "status") updateStatusView();
-    return;
-  }
-  var promises = [apiFetch("/config"), apiFetch("/status")];
-  if (!liveDevice.version) promises.push(apiFetch("/deviceinfo"));
-  Promise.all(promises).then(function(results) {
-    liveConfig = results[0];
-    liveStatus = results[1];
-    if (results[2]) liveDevice = results[2];
-    consecutiveFails = 0;
-    setBanner(false);
-    setDot("live");
-    updateChips();
-    if (currentView === "status") updateStatusView();
-    if (g("last-update")) g("last-update").textContent = "Updated " + nowStr();
-  }).catch(function(e) {
-    consecutiveFails++;
-    setDot("error");
-    var msg = consecutiveFails >= 3
-      ? "Node " + nodeIP + " unreachable (" + consecutiveFails + " failures)"
-      : "Fetch failed: " + e.message + " - retrying...";
-    setBanner(true, msg, consecutiveFails >= 3);
+function apiGet(path){return xhr("GET","http://"+nodeIP+path,null,null);}
+function apiPost(path,body,ct){return xhr("POST","http://"+nodeIP+path,body,ct||"application/json");}
+function apiPostForm(path,params){
+  var body=Object.keys(params).map(function(k){return encodeURIComponent(k)+"="+encodeURIComponent(params[k]);}).join("&");
+  return xhr("POST","http://"+nodeIP+path,body,"application/x-www-form-urlencoded");
+}
+
+// ── AUTH FLOW ────────────────────────────────────────────────────────────────
+function doConnect(){
+  var ipVal=g("ip-input").value.trim();
+  var pollVal=parseInt(g("poll-input").value)||3;
+  if(!ipVal){showModalErr("connect-err","Please enter a valid IP address.");return;}
+  nodeIP=ipVal; pollIntervalMs=pollVal*1000; isDemo=false;
+  g("connect-btn").disabled=true;
+  g("connect-btn").textContent="Connecting...";
+  hideModalErr("connect-err");
+  // Check if password protection is set
+  apiGet("/isQuestionSet").then(function(res){
+    g("connect-btn").disabled=false;
+    g("connect-btn").textContent="Connect to Node";
+    g("ov-connect").style.display="none";
+    if(res.success===false){
+      // No password set — go directly to setup
+      showSetupOverlay();
+    } else {
+      // Password set — show login
+      showLoginOverlay();
+    }
+  }).catch(function(e){
+    g("connect-btn").disabled=false;
+    g("connect-btn").textContent="Connect to Node";
+    showModalErr("connect-err","Cannot reach "+nodeIP+" - "+e.message);
   });
 }
 
-function doConnect() {
-  var ipVal = g("ip-input").value.trim();
-  var pollVal = parseInt(g("poll-input").value) || 3;
-  if (!ipVal) { showErr("Please enter a valid IP address."); return; }
-  nodeIP = ipVal;
-  pollIntervalMs = pollVal * 1000;
-  isDemo = false;
-  g("connect-btn").disabled = true;
-  g("connect-btn").textContent = "Connecting...";
-  g("connect-err").style.display = "none";
+function doDemo(){
+  isDemo=true; nodeIP="DEMO"; isLoggedIn=true;
+  liveConfig=JSON.parse(JSON.stringify(DEMO_CONFIG));
+  liveStatus=JSON.parse(JSON.stringify(DEMO_STATUS));
+  liveDevice=JSON.parse(JSON.stringify(DEMO_DEVICE));
+  g("ov-connect").style.display="none";
+  launchDashboard("demo");
+}
+
+function showLoginOverlay(){
+  g("ov-setup").style.display="none";
+  g("ov-connect").style.display="none";
+  g("ov-login").style.display="flex";
+  g("login-node-label").textContent="Node: "+nodeIP;
+  g("login-pw").value="";
+  g("login-btn").disabled=false;
+  g("login-btn").textContent="Login";
+  hideModalErr("login-err");
+}
+
+function showSetupOverlay(){
+  g("ov-login").style.display="none";
+  g("ov-connect").style.display="none";
+  g("ov-setup").style.display="flex";
+  g("setup-pw").value="admin";
+  g("setup-q1").value="";
+  g("setup-q2").value="";
+  hideModalErr("setup-err");
+  g("setup-ok").style.display="none";
+}
+
+function showChangeIP(){
+  stopPolling(); stopCanvas();
+  g("ov-login").style.display="none";
+  g("ov-setup").style.display="none";
+  g("ov-connect").style.display="flex";
+  g("connect-btn").disabled=false;
+  g("connect-btn").textContent="Connect to Node";
+  hideModalErr("connect-err");
+  setBanner(false);
+  isLoggedIn=false;
+}
+
+function doLogin(){
+  var pw=g("login-pw").value;
+  if(!pw){showModalErr("login-err","Please enter your password.");return;}
+  g("login-btn").disabled=true;
+  g("login-btn").textContent="Logging in...";
+  hideModalErr("login-err");
+  apiPostForm("/login",{password:pw}).then(function(res){
+    g("login-btn").disabled=false;
+    g("login-btn").textContent="Login";
+    if(res.success===true||res.success==="true"){
+      isLoggedIn=true;
+      g("ov-login").style.display="none";
+      launchDashboard(pw);
+    } else {
+      showModalErr("login-err","Incorrect password. Please try again.");
+    }
+  }).catch(function(e){
+    g("login-btn").disabled=false;
+    g("login-btn").textContent="Login";
+    showModalErr("login-err","Login failed: "+e.message);
+  });
+}
+
+function doSetup(){
+  var pw=g("setup-pw").value;
+  var q1=g("setup-q1").value.trim();
+  var q2=g("setup-q2").value.trim();
+  if(!pw||!q1||!q2){showModalErr("setup-err","All fields are required.");return;}
+  g("setup-btn").disabled=true;
+  g("setup-btn").textContent="Saving...";
+  hideModalErr("setup-err");
+  g("setup-ok").style.display="none";
+  apiPostForm("/questionSet",{password:pw,question1:q1,question2:q2}).then(function(res){
+    g("setup-btn").disabled=false;
+    g("setup-btn").textContent="Save Security Setup";
+    if(res.success===true||res.success==="true"){
+      showModalOk("setup-ok","Security setup saved. You can now log in.");
+      setTimeout(function(){showLoginOverlay();},1500);
+    } else {
+      showModalErr("setup-err","Setup failed - incorrect current password (code: "+(res.code||"?")+ ").");
+    }
+  }).catch(function(e){
+    g("setup-btn").disabled=false;
+    g("setup-btn").textContent="Save Security Setup";
+    showModalErr("setup-err","Setup failed: "+e.message);
+  });
+}
+
+function doLogout(){
+  stopPolling(); stopCanvas();
+  isLoggedIn=false; liveConfig={}; liveStatus={}; liveDevice={};
   setDot("connecting");
-  Promise.all([apiFetch("/config"), apiFetch("/status"), apiFetch("/deviceinfo")])
-    .then(function(results) {
-      liveConfig = results[0];
-      liveStatus = results[1];
-      liveDevice = results[2];
-      launchDashboard();
-    })
-    .catch(function(e) {
-      g("connect-btn").disabled = false;
-      g("connect-btn").textContent = "Connect to Node";
-      showErr("Cannot reach " + nodeIP + " - " + e.message);
-    });
+  setBanner(false);
+  var lu=g("logged-user"); lu.style.display="none"; lu.textContent="";
+  showLoginOverlay();
 }
 
-function doDemo() {
-  isDemo = true;
-  nodeIP = "DEMO";
-  liveConfig = JSON.parse(JSON.stringify(DEMO_CONFIG));
-  liveStatus = JSON.parse(JSON.stringify(DEMO_STATUS));
-  liveDevice = JSON.parse(JSON.stringify(DEMO_DEVICE));
-  launchDashboard();
-}
-
-function showErr(msg) {
-  var e = g("connect-err");
-  e.textContent = msg;
-  e.style.display = "block";
-}
-
-function launchDashboard() {
-  g("overlay").style.display = "none";
+function launchDashboard(pw){
   setDot("live");
-  updateChips();
+  var lu=g("logged-user");
+  lu.textContent=isDemo?"Demo Mode":"Node: "+nodeIP;
+  lu.style.display="inline-block";
   navTo("status", document.querySelector(".nav-item"));
   startPolling();
 }
 
-function changeIP() {
-  stopPolling();
-  g("connect-btn").disabled = false;
-  g("connect-btn").textContent = "Connect to Node";
-  g("connect-err").style.display = "none";
-  g("overlay").style.display = "flex";
-  setBanner(false);
-}
+// ── POLLING ──────────────────────────────────────────────────────────────────
+function startPolling(){fetchAll(); pollTimer=setInterval(fetchAll, pollIntervalMs);}
+function stopPolling(){if(pollTimer){clearInterval(pollTimer);pollTimer=null;}}
 
-function startPolling() {
-  fetchAll();
-  pollTimer = setInterval(fetchAll, pollIntervalMs);
-}
-
-function stopPolling() {
-  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-}
-
-function stopCanvas() {
-  if (animId) { cancelAnimationFrame(animId); animId = null; }
-}
-
-function startCanvas() {
-  var wrap = g("canvas-wrap");
-  if (!wrap) return;
-  var canvas = g("topo-canvas");
-  if (!canvas) {
-    canvas = document.createElement("canvas");
-    canvas.id = "topo-canvas";
-    wrap.insertBefore(canvas, wrap.firstChild);
+function fetchAll(){
+  if(isDemo){
+    demoTick++;
+    liveStatus=JSON.parse(JSON.stringify(DEMO_STATUS));
+    liveStatus.temp=parseFloat((58.4+Math.sin(demoTick*0.3)*0.4).toFixed(1));
+    if(!liveConfig.meshName) liveConfig=JSON.parse(JSON.stringify(DEMO_CONFIG));
+    if(!liveDevice.version) liveDevice=JSON.parse(JSON.stringify(DEMO_DEVICE));
+    updateChips();
+    if(currentView==="status") updateStatusView();
+    return;
   }
-  function resize() { canvas.width = wrap.clientWidth; canvas.height = wrap.clientHeight; }
-  resize();
-  if (window._canvasRO) window._canvasRO.disconnect();
-  window._canvasRO = new ResizeObserver(resize);
-  window._canvasRO.observe(wrap);
+  var promises=[apiGet("/config"), apiGet("/status")];
+  if(!liveDevice.version) promises.push(apiGet("/deviceinfo"));
+  Promise.all(promises).then(function(results){
+    liveConfig=results[0]; liveStatus=results[1];
+    if(results[2]) liveDevice=results[2];
+    consecutiveFails=0; setBanner(false); setDot("live"); updateChips();
+    if(currentView==="status") updateStatusView();
+    if(g("last-update")) g("last-update").textContent="Updated "+nowStr();
+  }).catch(function(e){
+    consecutiveFails++;
+    setDot("error");
+    setBanner(consecutiveFails>=3?"err":"warn",
+      consecutiveFails>=3
+        ? "Node "+nodeIP+" unreachable ("+consecutiveFails+" failures)"
+        : "Fetch failed: "+e.message+" - retrying...");
+  });
+}
 
-  function buildPos(nodes, selfId) {
-    var pos = {};
-    nodes.forEach(function(n, idx) {
-      if (n.id === selfId) {
-        pos[n.id] = {x: 0.5, y: 0.44};
-      } else {
-        var others = nodes.filter(function(x) { return x.id !== selfId; });
-        var oi = others.indexOf(n);
-        var angles = [-0.6, 0.6, Math.PI - 0.6, Math.PI + 0.6];
-        var a = (angles[oi] !== undefined) ? angles[oi] : (oi * Math.PI * 2 / others.length);
-        pos[n.id] = {
-          x: 0.5 + 0.3 * Math.cos(a - Math.PI / 2),
-          y: 0.44 + 0.28 * Math.sin(a - Math.PI / 2)
-        };
+// ── CANVAS ───────────────────────────────────────────────────────────────────
+function stopCanvas(){if(animId){cancelAnimationFrame(animId);animId=null;}}
+
+function startCanvas(){
+  var wrap=g("canvas-wrap"); if(!wrap)return;
+  var canvas=g("topo-canvas");
+  if(!canvas){canvas=document.createElement("canvas");canvas.id="topo-canvas";wrap.insertBefore(canvas,wrap.firstChild);}
+  function resize(){canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;}
+  resize();
+  if(window._cRO) window._cRO.disconnect();
+  window._cRO=new ResizeObserver(resize); window._cRO.observe(wrap);
+
+  function buildPos(nodes,selfId){
+    var pos={};
+    nodes.forEach(function(n){
+      if(n.id===selfId){pos[n.id]={x:.5,y:.44};}
+      else{
+        var others=nodes.filter(function(x){return x.id!==selfId;});
+        var oi=others.indexOf(n);
+        var angles=[-0.6,0.6,Math.PI-0.6,Math.PI+0.6];
+        var a=(angles[oi]!==undefined)?angles[oi]:(oi*Math.PI*2/others.length);
+        pos[n.id]={x:.5+.3*Math.cos(a-Math.PI/2),y:.44+.28*Math.sin(a-Math.PI/2)};
       }
     });
     return pos;
   }
 
-  function draw() {
-    var s = liveStatus;
-    if (!s || !s.nodeInfos) { animId = requestAnimationFrame(draw); return; }
-    var nodes = s.nodeInfos;
-    var lq = s.linkQuality || [];
-    var selfId = s.selfId;
-    var pos = buildPos(nodes, selfId);
-    var W = canvas.width, H = canvas.height;
-    var ctx = canvas.getContext("2d");
-    phase += 0.016;
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#F8F9FA";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "rgba(86,93,101,0.1)";
-    for (var gx = 0; gx < W; gx += 28) {
-      for (var gy = 0; gy < H; gy += 28) {
-        ctx.beginPath(); ctx.arc(gx, gy, 1, 0, Math.PI * 2); ctx.fill();
+  function draw(){
+    var s=liveStatus; if(!s||!s.nodeInfos){animId=requestAnimationFrame(draw);return;}
+    var nodes=s.nodeInfos,lq=s.linkQuality||[],selfId=s.selfId;
+    var pos=buildPos(nodes,selfId);
+    var W=canvas.width,H=canvas.height,ctx=canvas.getContext("2d");
+    phase+=0.016; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#F8F9FA"; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="rgba(86,93,101,0.1)";
+    for(var gx=0;gx<W;gx+=28)for(var gy=0;gy<H;gy+=28){ctx.beginPath();ctx.arc(gx,gy,1,0,Math.PI*2);ctx.fill();}
+    nodes.forEach(function(na,i){nodes.forEach(function(nb,j){
+      if(j<=i)return;
+      var snr=(lq[i]&&lq[i][j]!==undefined)?lq[i][j]:-10; if(snr<=-10)return;
+      var pa=pos[na.id],pb=pos[nb.id]; if(!pa||!pb)return;
+      var ax=pa.x*W,ay=pa.y*H,bx=pb.x*W,by=pb.y*H,col=snrColor(snr);
+      ctx.save(); ctx.shadowBlur=8; ctx.shadowColor=col+"55";
+      var grad=ctx.createLinearGradient(ax,ay,bx,by);
+      grad.addColorStop(0,col+"88"); grad.addColorStop(.5,col+"dd"); grad.addColorStop(1,col+"88");
+      ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.setLineDash([7,5]); ctx.lineDashOffset=-phase*7;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.font="bold 9px Arial"; ctx.fillStyle=col;
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(snr+" dB",(ax+bx)/2,(ay+by)/2-9); ctx.restore();
+    });});
+    nodes.forEach(function(n){
+      var p=pos[n.id]; if(!p)return;
+      var cx2=p.x*W,cy2=p.y*H,isSelf=n.id===selfId,R=isSelf?30:22;
+      if(isSelf){
+        var pr=R+10+5*Math.sin(phase*1.6);
+        ctx.save(); ctx.beginPath(); ctx.arc(cx2,cy2,pr,0,Math.PI*2);
+        ctx.strokeStyle="rgba(227,6,19,"+(0.18+0.1*Math.sin(phase))+")";
+        ctx.lineWidth=2; ctx.stroke(); ctx.restore();
       }
-    }
-    nodes.forEach(function(na, i) {
-      nodes.forEach(function(nb, j) {
-        if (j <= i) return;
-        var snr = (lq[i] && lq[i][j] !== undefined) ? lq[i][j] : -10;
-        if (snr <= -10) return;
-        var pa = pos[na.id], pb = pos[nb.id];
-        if (!pa || !pb) return;
-        var ax = pa.x * W, ay = pa.y * H, bx = pb.x * W, by = pb.y * H;
-        var col = snrColor(snr);
-        ctx.save();
-        ctx.shadowBlur = 8; ctx.shadowColor = col + "55";
-        var grad = ctx.createLinearGradient(ax, ay, bx, by);
-        grad.addColorStop(0, col + "88"); grad.addColorStop(0.5, col + "dd"); grad.addColorStop(1, col + "88");
-        ctx.strokeStyle = grad; ctx.lineWidth = 2;
-        ctx.setLineDash([7, 5]); ctx.lineDashOffset = -phase * 7;
-        ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.restore();
-        ctx.save(); ctx.font = "bold 9px Arial"; ctx.fillStyle = col;
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(snr + " dB", (ax + bx) / 2, (ay + by) / 2 - 9); ctx.restore();
-      });
+      ctx.save(); ctx.shadowBlur=isSelf?20:10; ctx.shadowColor=isSelf?"#E3061388":"#565D6544";
+      var ng=ctx.createRadialGradient(cx2-R*.3,cy2-R*.3,0,cx2,cy2,R);
+      if(isSelf){ng.addColorStop(0,"#E30613");ng.addColorStop(1,"#B71C1C");}
+      else{ng.addColorStop(0,"#FFFFFF");ng.addColorStop(1,"#E8EAEC");}
+      ctx.beginPath(); ctx.arc(cx2,cy2,R,0,Math.PI*2);
+      ctx.fillStyle=ng; ctx.fill();
+      ctx.strokeStyle=isSelf?"#B71C1C":"#565D65"; ctx.lineWidth=isSelf?2.5:1.5; ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.font="bold "+(isSelf?13:12)+"px Arial";
+      ctx.fillStyle=isSelf?"#FFFFFF":"#404040"; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(n.id,cx2,cy2); ctx.restore();
+      ctx.save(); ctx.font="9px Arial"; ctx.fillStyle=isSelf?"#E30613":"#8A9099";
+      ctx.textAlign="center";
+      ctx.fillText("."+(n.ip?n.ip.split(".").pop():""),cx2,cy2+R+11); ctx.restore();
     });
-    nodes.forEach(function(n) {
-      var p = pos[n.id]; if (!p) return;
-      var cx = p.x * W, cy = p.y * H;
-      var isSelf = n.id === selfId;
-      var R = isSelf ? 30 : 22;
-      if (isSelf) {
-        var pr = R + 10 + 5 * Math.sin(phase * 1.6);
-        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, pr, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(227,6,19," + (0.18 + 0.1 * Math.sin(phase)) + ")";
-        ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
-      }
-      ctx.save(); ctx.shadowBlur = isSelf ? 20 : 10;
-      ctx.shadowColor = isSelf ? "#E3061388" : "#565D6544";
-      var ng = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.3, 0, cx, cy, R);
-      if (isSelf) { ng.addColorStop(0, "#E30613"); ng.addColorStop(1, "#B71C1C"); }
-      else { ng.addColorStop(0, "#FFFFFF"); ng.addColorStop(1, "#E8EAEC"); }
-      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.fillStyle = ng; ctx.fill();
-      ctx.strokeStyle = isSelf ? "#B71C1C" : ST_MID;
-      ctx.lineWidth = isSelf ? 2.5 : 1.5; ctx.stroke(); ctx.restore();
-      ctx.save(); ctx.font = "bold " + (isSelf ? 13 : 12) + "px Arial";
-      ctx.fillStyle = isSelf ? "#FFFFFF" : ST_DARK;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(n.id, cx, cy); ctx.restore();
-      ctx.save(); ctx.font = "9px Arial";
-      ctx.fillStyle = isSelf ? ST_RED : "#8A9099";
-      ctx.textAlign = "center";
-      var suffix = n.ip ? "." + n.ip.split(".").pop() : "";
-      ctx.fillText(suffix, cx, cy + R + 11); ctx.restore();
-    });
-    animId = requestAnimationFrame(draw);
+    animId=requestAnimationFrame(draw);
   }
-  stopCanvas();
-  draw();
+  stopCanvas(); draw();
 }
 
-function renderDelayChips(delays) {
-  if (!delays || !delays.length) return '<span style="color:#8A9099;font-size:11px">No delay data</span>';
-  return delays.map(function(d) {
-    var km = ((d.delay / 100000000) * 299792.458).toFixed(2);
-    return '<div class="delay-chip"><span style="color:#565D65">Node ' + d.id + '</span><span style="color:#404040;font-weight:700">' + (d.delay * 10) + ' ns</span><span style="color:#8A9099;font-size:10px">' + km + ' km</span></div>';
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function renderDelayChips(delays){
+  if(!delays||!delays.length) return '<span style="color:#8A9099;font-size:11px">No delay data</span>';
+  return delays.map(function(d){
+    var km=((d.delay/100000000)*299792.458).toFixed(2);
+    return '<div class="delay-chip"><span style="color:#565D65">Node '+d.id+'</span><span style="color:#404040;font-weight:700">'+(d.delay*10)+' ns</span><span style="color:#8A9099;font-size:10px">'+km+' km</span></div>';
   }).join("");
 }
 
-function viewStatus() {
-  var s = liveStatus || {};
-  var battText = s.batteryLevel === 101 ? "EXT PWR" : (s.batteryLevel !== undefined ? s.batteryLevel + "%" : "-");
-  g("content").innerHTML =
-    '<div style="display:flex;flex-direction:column;height:100%">' +
-    '<div class="stat-cards">' +
-    '<div class="card stat-card"><div class="stat-lbl">Nodes Online</div><div class="stat-val" id="sv-nodes" style="color:#E30613">' + (s.nodeNumber || "-") + '</div></div>' +
-    '<div class="card stat-card"><div class="stat-lbl">Temperature</div><div class="stat-val" id="sv-temp" style="color:#E65100">' + (s.temp || "-") + ' C</div></div>' +
-    '<div class="card stat-card"><div class="stat-lbl">Battery</div><div class="stat-val" id="sv-batt" style="color:#2E7D32">' + battText + '</div></div>' +
-    '<div class="card stat-card"><div class="stat-lbl">Self Node</div><div class="stat-val" style="color:#404040">' + (s.selfId || "-") + '</div></div>' +
-    '</div>' +
-    '<div id="canvas-wrap">' +
-    '<canvas id="topo-canvas"></canvas>' +
-    '<div id="map-legend"><div class="leg-title">LINK QUALITY</div>' +
-    '<div class="leg-row"><div class="leg-line" style="background:#E30613"></div><span class="leg-lbl">Excellent (25+)</span></div>' +
-    '<div class="leg-row"><div class="leg-line" style="background:#2E7D32"></div><span class="leg-lbl">Good (15-25)</span></div>' +
-    '<div class="leg-row"><div class="leg-line" style="background:#E65100"></div><span class="leg-lbl">Fair (5-15)</span></div>' +
-    '<div class="leg-row"><div class="leg-line" style="background:#CFD2D5"></div><span class="leg-lbl">No Link</span></div></div>' +
-    '<div id="self-badge">&#9711; Self = Node ' + (s.selfId || "-") + '</div>' +
-    '<div id="last-update">Updated ' + nowStr() + '</div>' +
-    '</div>' +
-    '<div class="delay-strip"><span class="delay-lbl">TX Delay:</span>' +
-    '<div id="delay-chips">' + renderDelayChips(s.transmissionDelay) + '</div>' +
-    '</div></div>';
+function viewStatus(){
+  var s=liveStatus||{};
+  var battText=s.batteryLevel===101?"EXT PWR":(s.batteryLevel!==undefined?s.batteryLevel+"%":"-");
+  g("content").innerHTML=
+    '<div style="display:flex;flex-direction:column;height:100%">'+
+    '<div class="stat-cards">'+
+    '<div class="card stat-card"><div class="stat-lbl">Nodes Online</div><div class="stat-val" id="sv-nodes" style="color:#E30613">'+(s.nodeNumber||"-")+'</div></div>'+
+    '<div class="card stat-card"><div class="stat-lbl">Temperature</div><div class="stat-val" id="sv-temp" style="color:#E65100">'+(s.temp||"-")+' C</div></div>'+
+    '<div class="card stat-card"><div class="stat-lbl">Battery</div><div class="stat-val" id="sv-batt" style="color:#2E7D32">'+battText+'</div></div>'+
+    '<div class="card stat-card"><div class="stat-lbl">Self Node</div><div class="stat-val" style="color:#404040">'+(s.selfId||"-")+'</div></div>'+
+    '</div>'+
+    '<div id="canvas-wrap"><canvas id="topo-canvas"></canvas>'+
+    '<div id="map-legend"><div class="leg-title">LINK QUALITY</div>'+
+    '<div class="leg-row"><div class="leg-line" style="background:#E30613"></div><span class="leg-lbl">Excellent (25+)</span></div>'+
+    '<div class="leg-row"><div class="leg-line" style="background:#2E7D32"></div><span class="leg-lbl">Good (15-25)</span></div>'+
+    '<div class="leg-row"><div class="leg-line" style="background:#E65100"></div><span class="leg-lbl">Fair (5-15)</span></div>'+
+    '<div class="leg-row"><div class="leg-line" style="background:#CFD2D5"></div><span class="leg-lbl">No Link</span></div></div>'+
+    '<div id="self-badge">Self = Node '+(s.selfId||"-")+'</div>'+
+    '<div id="last-update">Updated '+nowStr()+'</div></div>'+
+    '<div class="delay-strip"><span class="delay-lbl">TX Delay:</span>'+
+    '<div id="delay-chips">'+renderDelayChips(s.transmissionDelay)+'</div></div></div>';
   startCanvas();
 }
 
-function updateStatusView() {
-  var s = liveStatus;
-  if (!s || !s.nodeInfos) return;
-  if (g("sv-nodes")) g("sv-nodes").textContent = s.nodeNumber || "-";
-  if (g("sv-temp")) g("sv-temp").textContent = (s.temp || "-") + " C";
-  if (g("sv-batt")) g("sv-batt").textContent = s.batteryLevel === 101 ? "EXT PWR" : (s.batteryLevel + "%");
-  if (g("delay-chips")) g("delay-chips").innerHTML = renderDelayChips(s.transmissionDelay);
-  if (g("last-update")) g("last-update").textContent = "Updated " + nowStr();
+function updateStatusView(){
+  var s=liveStatus; if(!s||!s.nodeInfos)return;
+  if(g("sv-nodes")) g("sv-nodes").textContent=s.nodeNumber||"-";
+  if(g("sv-temp")) g("sv-temp").textContent=(s.temp||"-")+" C";
+  if(g("sv-batt")) g("sv-batt").textContent=s.batteryLevel===101?"EXT PWR":(s.batteryLevel+"%");
+  if(g("delay-chips")) g("delay-chips").innerHTML=renderDelayChips(s.transmissionDelay);
+  if(g("last-update")) g("last-update").textContent="Updated "+nowStr();
 }
 
-function viewTopoTable() {
-  var s = liveStatus;
-  if (!s || !s.nodeInfos) {
-    g("content").innerHTML = '<div class="placeholder" style="height:100%"><div class="ph-title">No Status Data</div><div class="ph-sub">Waiting for /status response</div></div>';
-    return;
+function viewTopoTable(){
+  var s=liveStatus;
+  if(!s||!s.nodeInfos){g("content").innerHTML='<div class="placeholder" style="height:100%"><div class="ph-title">No Status Data</div><div class="ph-sub">Waiting for /status response</div></div>';return;}
+  var nodes=s.nodeInfos,lq=s.linkQuality||[];
+  function pill(snr){
+    if(snr<=-10)return'<span style="color:#CFD2D5">-</span>';
+    var c=snrColor(snr);
+    return'<span style="display:inline-block;padding:2px 10px;border-radius:3px;font-weight:700;font-size:11px;background:'+c+'18;color:'+c+';border:1px solid '+c+'55">'+snr+' dB</span>';
   }
-  var nodes = s.nodeInfos;
-  var lq = s.linkQuality || [];
-  function pill(snr) {
-    if (snr <= -10) return '<span style="color:#CFD2D5">-</span>';
-    var c = snrColor(snr);
-    return '<span style="display:inline-block;padding:2px 10px;border-radius:3px;font-weight:700;font-size:11px;background:' + c + '18;color:' + c + ';border:1px solid ' + c + '55">' + snr + ' dB</span>';
-  }
-  var hdrs = nodes.map(function(n) { return '<th style="text-align:center">Node ' + n.id + '</th>'; }).join("");
-  var rows = nodes.map(function(na, i) {
-    var cells = nodes.map(function(nb, j) {
-      if (i === j) return '<td style="text-align:center"><span style="color:#CFD2D5">-</span></td>';
-      return '<td style="text-align:center">' + pill((lq[i] && lq[i][j] !== undefined) ? lq[i][j] : -10) + '</td>';
+  var hdrs=nodes.map(function(n){return'<th style="text-align:center">Node '+n.id+'</th>';}).join("");
+  var rows=nodes.map(function(na,i){
+    var cells=nodes.map(function(nb,j){
+      if(i===j)return'<td style="text-align:center"><span style="color:#CFD2D5">-</span></td>';
+      return'<td style="text-align:center">'+pill((lq[i]&&lq[i][j]!==undefined)?lq[i][j]:-10)+'</td>';
     }).join("");
-    return '<tr><td style="font-weight:700;color:#E30613">Node ' + na.id + '</td>' + cells + '</tr>';
+    return'<tr><td style="font-weight:700;color:#E30613">Node '+na.id+'</td>'+cells+'</tr>';
   }).join("");
-  var nodeRows = nodes.map(function(n) {
-    var lat = (n.latitude === undefined || n.latitude === -90) ? "-" : n.latitude.toFixed(4);
-    var lon = (n.longitude === undefined || n.longitude === -180) ? "-" : n.longitude.toFixed(4);
-    var pct = Math.round((n.resourceRatio || 0) * 100);
-    return '<tr>' +
-      '<td style="font-weight:700;color:#E30613">' + n.id + '</td>' +
-      '<td>' + n.ip + '</td><td>' + lat + '</td><td>' + lon + '</td>' +
-      '<td>' + (n.altitude || "-") + ' m</td>' +
-      '<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div><span style="font-weight:700;width:34px">' + pct + '%</span></div></td>' +
-      '</tr>';
+  var nodeRows=nodes.map(function(n){
+    var lat=(n.latitude===undefined||n.latitude===-90)?"-":n.latitude.toFixed(4);
+    var lon=(n.longitude===undefined||n.longitude===-180)?"-":n.longitude.toFixed(4);
+    var pct=Math.round((n.resourceRatio||0)*100);
+    return'<tr><td style="font-weight:700;color:#E30613">'+n.id+'</td><td>'+n.ip+'</td><td>'+lat+'</td><td>'+lon+'</td><td>'+(n.altitude||"-")+' m</td>'+
+      '<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span style="font-weight:700;width:34px">'+pct+'%</span></div></td></tr>';
   }).join("");
-  g("content").innerHTML =
-    '<div class="panel-pad">' +
-    '<div class="sec-title">Link Quality Matrix (dB SNR)</div>' +
-    '<div class="card" style="overflow:hidden;margin-bottom:24px"><table><thead><tr><th>TX / RX</th>' + hdrs + '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<div class="sec-title">Node Details</div>' +
-    '<div class="card" style="overflow:hidden"><table><thead><tr><th>Node ID</th><th>IP Address</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Resource Ratio</th></tr></thead><tbody>' + nodeRows + '</tbody></table></div>' +
+  g("content").innerHTML=
+    '<div class="panel-pad">'+
+    '<div class="sec-title">Link Quality Matrix (dB SNR)</div>'+
+    '<div class="card" style="overflow:hidden;margin-bottom:24px"><table><thead><tr><th>TX / RX</th>'+hdrs+'</tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div class="sec-title">Node Details</div>'+
+    '<div class="card" style="overflow:hidden"><table><thead><tr><th>Node ID</th><th>IP Address</th><th>Latitude</th><th>Longitude</th><th>Altitude</th><th>Resource Ratio</th></tr></thead><tbody>'+nodeRows+'</tbody></table></div>'+
     '</div>';
 }
 
-function viewRF() {
-  var c = (liveConfig && liveConfig.meshName) ? liveConfig : DEMO_CONFIG;
-  var freqVal = fmtFreq(c.freqList ? c.freqList[c.freqDefault || 0] : null);
-  var cards = [
-    ["Operating Frequency", freqVal],
-    ["Bandwidth", BW_MAP[String(c.span)] || "-"],
-    ["Frequency Mode", FREQ_MODES[c.freqMode] || c.freqMode || "-"],
-    ["RF1 Attenuation", (c.pwAtten1 !== undefined ? c.pwAtten1 : "-") + " dB"],
-    ["RF2 Attenuation", (c.pwAtten2 !== undefined ? c.pwAtten2 : "-") + " dB"],
-    ["Max TX Power", ((liveDevice && liveDevice.powerMax) ? liveDevice.powerMax : 27) + " dBm"]
-  ].map(function(x) {
-    return '<div class="card rf-card"><div class="rf-lbl">' + x[0] + '</div><div class="rf-val">' + x[1] + '</div></div>';
-  }).join("");
-  g("content").innerHTML =
-    '<div class="panel-pad">' +
-    '<div class="sec-title">RF Configuration</div>' +
-    '<div class="rf-grid">' + cards + '</div>' +
-    '<div class="sec-title">Node Network — ' + nodeIP + '</div>' +
-    '<div class="card" style="padding:16px 20px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px">' +
-    '<div><span style="color:#8A9099">IP: </span><strong>' + (c.ip || "-") + '</strong></div>' +
-    '<div><span style="color:#8A9099">Subnet: </span><strong>' + (c.nwMask || "-") + '</strong></div>' +
-    '<div><span style="color:#8A9099">Range: </span><strong>' + (c.rangeMode || "-") + ' km</strong></div>' +
-    '<div><span style="color:#8A9099">Encryption: </span><strong>' + (ENC_MAP[String(c.dataEncryptionMode)] || "-") + '</strong></div>' +
+function viewRF(){
+  var c=(liveConfig&&liveConfig.meshName)?liveConfig:DEMO_CONFIG;
+  var freqVal=fmtFreq(c.freqList?c.freqList[c.freqDefault||0]:null);
+  var cards=[["Operating Frequency",freqVal],["Bandwidth",BW_MAP[String(c.span)]||"-"],["Frequency Mode",FREQ_MODES[c.freqMode]||c.freqMode||"-"],
+    ["RF1 Attenuation",(c.pwAtten1!==undefined?c.pwAtten1:"-")+" dB"],["RF2 Attenuation",(c.pwAtten2!==undefined?c.pwAtten2:"-")+" dB"],
+    ["Max TX Power",((liveDevice&&liveDevice.powerMax)?liveDevice.powerMax:27)+" dBm"]]
+    .map(function(x){return'<div class="card rf-card"><div class="rf-lbl">'+x[0]+'</div><div class="rf-val">'+x[1]+'</div></div>';}).join("");
+  g("content").innerHTML='<div class="panel-pad"><div class="sec-title">RF Configuration</div><div class="rf-grid">'+cards+'</div>'+
+    '<div class="sec-title">Node Network</div>'+
+    '<div class="card" style="padding:16px 20px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px">'+
+    '<div><span style="color:#8A9099">IP: </span><strong>'+(c.ip||"-")+'</strong></div>'+
+    '<div><span style="color:#8A9099">Subnet: </span><strong>'+(c.nwMask||"-")+'</strong></div>'+
+    '<div><span style="color:#8A9099">Range: </span><strong>'+(c.rangeMode||"-")+' km</strong></div>'+
+    '<div><span style="color:#8A9099">Encryption: </span><strong>'+(ENC_MAP[String(c.dataEncryptionMode)]||"-")+'</strong></div>'+
     '</div></div></div>';
 }
 
-function viewDevice() {
-  var d = (liveDevice && liveDevice.version) ? liveDevice : DEMO_DEVICE;
-  var li = d.licenseinfo || {};
-  var idRows = [["Device Type", d.deviceType || "-"],["ESN", (d.deviceSn || "").slice(0, 16) + "..."],["Firmware", (d.version || "-").trim()],["Chip Level", d.chipLevel !== undefined ? d.chipLevel : "-"]]
-    .map(function(x) { return '<div class="kv-row"><span class="kv-k">' + x[0] + '</span><span class="kv-v">' + x[1] + '</span></div>'; }).join("");
-  var rfRows = [["Freq Range", fmtFreq(d.freqMin) + " - " + fmtFreq(d.freqMax)],["Max Power", (d.powerMax || "-") + " dBm"],["RF1 Ref Att.", (d.powerMaxAtten || 7) + " dB"],["Waveform", li.supportedWaveform === 3 ? "Wideband + NB" : "-"]]
-    .map(function(x) { return '<div class="kv-row"><span class="kv-k">' + x[0] + '</span><span class="kv-v">' + x[1] + '</span></div>'; }).join("");
-  var feats = [["AES-256",li.dataEncryptionAES256],["AES-128",li.dataEncryptionAES128],["FHSS",li.freqHopping],["SMART",li.freqSmart],["SMART(A)",li.freqSmartAdvanced],["FHSS(A)",li.adaptiveFreqHopping],["Wi-Fi",li.wifi],["Silence",li.silence]]
-    .map(function(x) { return '<div class="feat ' + (x[1] ? "on" : "off") + '"><div class="feat-dot"></div>' + x[0] + '</div>'; }).join("");
-  g("content").innerHTML =
-    '<div class="panel-pad">' +
-    '<div class="dev-grid">' +
-    '<div class="card" style="padding:20px"><div class="sec-title">Device Identity</div>' + idRows + '</div>' +
-    '<div class="card" style="padding:20px"><div class="sec-title">RF Parameters</div>' + rfRows + '</div>' +
-    '</div>' +
-    '<div class="sec-title">Licence Features</div>' +
-    '<div class="feat-grid">' + feats + '</div>' +
-    '<div class="big-grid">' +
-    '<div class="card big-card"><div class="big-lbl">Max Nodes</div><div class="big-val">' + (li.maxNodeNum || "-") + '</div></div>' +
-    '<div class="card big-card"><div class="big-lbl">Max Throughput</div><div class="big-val">' + (li.maxThroughput ? (li.maxThroughput / 1000) + " Mbps" : "-") + '</div></div>' +
-    '</div></div>';
+function viewDevice(){
+  var d=(liveDevice&&liveDevice.version)?liveDevice:DEMO_DEVICE,li=d.licenseinfo||{};
+  var idRows=[["Device Type",d.deviceType||"-"],["ESN",(d.deviceSn||"").slice(0,16)+"..."],["Firmware",(d.version||"-").trim()],["Chip Level",d.chipLevel!==undefined?d.chipLevel:"-"]]
+    .map(function(x){return'<div class="kv-row"><span class="kv-k">'+x[0]+'</span><span class="kv-v">'+x[1]+'</span></div>';}).join("");
+  var rfRows=[["Freq Range",fmtFreq(d.freqMin)+" - "+fmtFreq(d.freqMax)],["Max Power",(d.powerMax||"-")+" dBm"],["RF1 Ref Att.",(d.powerMaxAtten||7)+" dB"],["Waveform",li.supportedWaveform===3?"Wideband + NB":"-"]]
+    .map(function(x){return'<div class="kv-row"><span class="kv-k">'+x[0]+'</span><span class="kv-v">'+x[1]+'</span></div>';}).join("");
+  var feats=[["AES-256",li.dataEncryptionAES256],["AES-128",li.dataEncryptionAES128],["FHSS",li.freqHopping],["SMART",li.freqSmart],["SMART(A)",li.freqSmartAdvanced],["FHSS(A)",li.adaptiveFreqHopping],["Wi-Fi",li.wifi],["Silence",li.silence]]
+    .map(function(x){return'<div class="feat '+(x[1]?"on":"off")+'"><div class="feat-dot"></div>'+x[0]+'</div>';}).join("");
+  g("content").innerHTML='<div class="panel-pad">'+
+    '<div class="dev-grid"><div class="card" style="padding:20px"><div class="sec-title">Device Identity</div>'+idRows+'</div>'+
+    '<div class="card" style="padding:20px"><div class="sec-title">RF Parameters</div>'+rfRows+'</div></div>'+
+    '<div class="sec-title">Licence Features</div><div class="feat-grid">'+feats+'</div>'+
+    '<div class="big-grid"><div class="card big-card"><div class="big-lbl">Max Nodes</div><div class="big-val">'+(li.maxNodeNum||"-")+'</div></div>'+
+    '<div class="card big-card"><div class="big-lbl">Max Throughput</div><div class="big-val">'+(li.maxThroughput?(li.maxThroughput/1000)+" Mbps":"-")+'</div></div></div></div>';
 }
 
-function viewBasic() {
-  var c = (liveConfig && liveConfig.meshName) ? liveConfig : DEMO_CONFIG;
-  var fmodeOpts = Object.keys(FREQ_MODES).map(function(v) {
-    return '<option value="' + v + '"' + (c.freqMode === v ? " selected" : "") + '>' + FREQ_MODES[v] + '</option>';
-  }).join("");
-  var bwOpts = Object.keys(BW_MAP).map(function(v) {
-    return '<option value="' + v + '"' + (String(c.span) === v ? " selected" : "") + '>' + BW_MAP[v] + '</option>';
-  }).join("");
-  var encOpts = Object.keys(ENC_MAP).map(function(v) {
-    return '<option value="' + v + '"' + (String(c.dataEncryptionMode) === v ? " selected" : "") + '>' + ENC_MAP[v] + '</option>';
-  }).join("");
-  var demoNote = isDemo ? '<span style="font-size:11px;color:#8A9099;margin-left:8px">Demo mode - POST simulated</span>' : "";
-  g("content").innerHTML =
-    '<div class="panel-pad">' +
-    '<div class="settings-grid">' +
-    '<div class="card" style="padding:20px">' +
-    '<div class="sec-title">Basic Config</div>' +
-    '<div class="field"><label>Mesh ID</label><input id="f-mesh" value="' + (c.meshName || "") + '"/></div>' +
-    '<div class="field"><label>Node ID</label><input id="f-id" type="number" value="' + (c.id || "") + '"/></div>' +
-    '<div class="field"><label>IP Address</label><input id="f-ip" value="' + (c.ip || "") + '"/></div>' +
-    '<div class="field"><label>Subnet Mask</label><input id="f-mask" value="' + (c.nwMask || "") + '"/></div>' +
-    '<div class="field"><label>Max Range (km)</label><input id="f-range" value="' + (c.rangeMode || "") + '"/></div>' +
-    '</div>' +
-    '<div class="card" style="padding:20px">' +
-    '<div class="sec-title">RF Config</div>' +
-    '<div class="field"><label>Frequency Mode</label><select id="f-fmode">' + fmodeOpts + '</select></div>' +
-    '<div class="field"><label>Bandwidth</label><select id="f-span">' + bwOpts + '</select></div>' +
-    '<div class="field"><label>RF1 Attenuation (dB)</label><input id="f-pw1" type="number" value="' + (c.pwAtten1 || 0) + '" min="0" max="89"/></div>' +
-    '<div class="field"><label>RF2 Attenuation (dB)</label><input id="f-pw2" type="number" value="' + (c.pwAtten2 || 0) + '" min="0" max="89"/></div>' +
-    '<div class="field"><label>Encryption</label><select id="f-enc">' + encOpts + '</select></div>' +
-    '</div></div>' +
-    '<div style="margin-top:20px;display:flex;gap:12px;align-items:center">' +
-    '<button class="btn-red" id="save-btn" onclick="submitConfig()">POST Config</button>' +
-    '<button class="btn-grey" onclick="viewBasic()">Reset</button>' + demoNote +
-    '</div></div>';
+function viewBasic(){
+  var c=(liveConfig&&liveConfig.meshName)?liveConfig:DEMO_CONFIG;
+  var fmodeOpts=Object.keys(FREQ_MODES).map(function(v){return'<option value="'+v+'"'+(c.freqMode===v?" selected":"")+'>'+FREQ_MODES[v]+'</option>';}).join("");
+  var bwOpts=Object.keys(BW_MAP).map(function(v){return'<option value="'+v+'"'+(String(c.span)===v?" selected":"")+'>'+BW_MAP[v]+'</option>';}).join("");
+  var encOpts=Object.keys(ENC_MAP).map(function(v){return'<option value="'+v+'"'+(String(c.dataEncryptionMode)===v?" selected":"")+'>'+ENC_MAP[v]+'</option>';}).join("");
+  var demoNote=isDemo?'<span style="font-size:11px;color:#8A9099;margin-left:8px">Demo mode - POST simulated</span>':"";
+  g("content").innerHTML='<div class="panel-pad"><div class="settings-grid">'+
+    '<div class="card" style="padding:20px"><div class="sec-title">Basic Config</div>'+
+    '<div class="field"><label>Mesh ID</label><input id="f-mesh" value="'+(c.meshName||"")+'"/></div>'+
+    '<div class="field"><label>Node ID</label><input id="f-id" type="number" value="'+(c.id||"")+'"/></div>'+
+    '<div class="field"><label>IP Address</label><input id="f-ip" value="'+(c.ip||"")+'"/></div>'+
+    '<div class="field"><label>Subnet Mask</label><input id="f-mask" value="'+(c.nwMask||"")+'"/></div>'+
+    '<div class="field"><label>Max Range (km)</label><input id="f-range" value="'+(c.rangeMode||"")+'"/></div></div>'+
+    '<div class="card" style="padding:20px"><div class="sec-title">RF Config</div>'+
+    '<div class="field"><label>Frequency Mode</label><select id="f-fmode">'+fmodeOpts+'</select></div>'+
+    '<div class="field"><label>Bandwidth</label><select id="f-span">'+bwOpts+'</select></div>'+
+    '<div class="field"><label>RF1 Attenuation (dB)</label><input id="f-pw1" type="number" value="'+(c.pwAtten1||0)+'" min="0" max="89"/></div>'+
+    '<div class="field"><label>RF2 Attenuation (dB)</label><input id="f-pw2" type="number" value="'+(c.pwAtten2||0)+'" min="0" max="89"/></div>'+
+    '<div class="field"><label>Encryption</label><select id="f-enc">'+encOpts+'</select></div></div></div>'+
+    '<div style="margin-top:20px;display:flex;gap:12px;align-items:center">'+
+    '<button class="btn-red" id="save-btn" onclick="submitConfig()">POST Config</button>'+
+    '<button class="btn-grey" onclick="viewBasic()">Reset</button>'+demoNote+'</div></div>';
 }
 
-function submitConfig() {
-  var payload = {
-    meshName: g("f-mesh").value,
-    id: parseInt(g("f-id").value),
-    ip: g("f-ip").value,
-    nwMask: g("f-mask").value,
-    rangeMode: g("f-range").value,
-    freqMode: g("f-fmode").value,
-    span: parseInt(g("f-span").value),
-    pwAtten1: parseInt(g("f-pw1").value),
-    pwAtten2: parseInt(g("f-pw2").value),
-    dataEncryptionMode: parseInt(g("f-enc").value)
-  };
-  for (var k in payload) { if (liveConfig) liveConfig[k] = payload[k]; }
+function submitConfig(){
+  var payload={meshName:g("f-mesh").value,id:parseInt(g("f-id").value),ip:g("f-ip").value,nwMask:g("f-mask").value,
+    rangeMode:g("f-range").value,freqMode:g("f-fmode").value,span:parseInt(g("f-span").value),
+    pwAtten1:parseInt(g("f-pw1").value),pwAtten2:parseInt(g("f-pw2").value),dataEncryptionMode:parseInt(g("f-enc").value)};
+  for(var k in payload){if(liveConfig) liveConfig[k]=payload[k];}
   updateChips();
-  if (isDemo) {
-    var btn = g("save-btn");
-    btn.textContent = "Saved (Demo)";
-    btn.classList.add("saved");
-    setTimeout(function() { btn.textContent = "POST Config"; btn.classList.remove("saved"); }, 2000);
+  if(isDemo){var b=g("save-btn");b.textContent="Saved (Demo)";b.classList.add("saved");setTimeout(function(){b.textContent="POST Config";b.classList.remove("saved");},2000);return;}
+  apiPost("/config",JSON.stringify(payload),"application/json").then(function(){
+    var b=g("save-btn");b.textContent="Saved";b.classList.add("saved");setTimeout(function(){b.textContent="POST Config";b.classList.remove("saved");},2000);
+  }).catch(function(e){setBanner("err","POST /config failed: "+e.message);});
+}
+
+// ── SECURITY PANEL: CHANGE PASSWORD ─────────────────────────────────────────
+function viewSecPassword(){
+  g("content").innerHTML=
+    '<div class="panel-pad"><div class="sec-title">Change Password</div>'+
+    '<div style="max-width:420px">'+
+    '<div class="card" style="padding:24px">'+
+    '<p style="font-size:12px;color:#565D65;margin-bottom:20px">Change the login password for node <strong>'+nodeIP+'</strong>. POST to <code style="background:#F4F5F6;padding:2px 6px;border-radius:3px;font-size:11px">/loginPassword</code></p>'+
+    '<div class="field"><label>Current Password</label><input id="cp-old" type="password" placeholder="Current password"/></div>'+
+    '<div class="field"><label>New Password</label><input id="cp-new" type="password" placeholder="New password"/></div>'+
+    '<div class="field"><label>Confirm New Password</label><input id="cp-confirm" type="password" placeholder="Repeat new password"/></div>'+
+    '<button class="btn-red" id="cp-btn" onclick="doChangePassword()" style="width:100%;padding:11px;font-size:13px">Change Password</button>'+
+    '<div id="cp-err" class="modal-err" style="margin-top:12px"></div>'+
+    '<div id="cp-ok" class="modal-ok" style="margin-top:12px"></div>'+
+    '</div></div></div>';
+}
+
+function doChangePassword(){
+  var oldPw=g("cp-old").value,newPw=g("cp-new").value,confirm=g("cp-confirm").value;
+  g("cp-err").style.display="none"; g("cp-ok").style.display="none";
+  if(!oldPw||!newPw||!confirm){showModalErr("cp-err","All fields are required.");return;}
+  if(newPw!==confirm){showModalErr("cp-err","New passwords do not match.");return;}
+  if(newPw.length<4){showModalErr("cp-err","Password must be at least 4 characters.");return;}
+  var btn=g("cp-btn"); btn.disabled=true; btn.textContent="Changing...";
+  if(isDemo){
+    setTimeout(function(){btn.disabled=false;btn.textContent="Change Password";showModalOk("cp-ok","Password changed successfully (Demo).");},800);
     return;
   }
-  apiFetch("/config", {method: "POST", body: JSON.stringify(payload)})
-    .then(function() {
-      var btn = g("save-btn");
-      btn.textContent = "Saved";
-      btn.classList.add("saved");
-      setTimeout(function() { btn.textContent = "POST Config"; btn.classList.remove("saved"); }, 2000);
-    })
-    .catch(function(e) { setBanner(true, "POST /config failed: " + e.message, true); });
+  apiPostForm("/loginPassword",{password:oldPw,newPassword:newPw}).then(function(res){
+    btn.disabled=false; btn.textContent="Change Password";
+    if(res.success===true||res.success==="true"){
+      showModalOk("cp-ok","Password changed successfully. Please log in again.");
+      setTimeout(function(){doLogout();},2000);
+    } else {
+      showModalErr("cp-err","Failed - incorrect current password (code: "+(res.code||"?")+ ").");
+    }
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent="Change Password";
+    showModalErr("cp-err","Error: "+e.message);
+  });
 }
 
-var PLACEHOLDER_LABELS = {topology:"Topology",network:"Network",security:"Security",device:"Device Info","net-global":"Global Settings","net-advance":"Advanced Config","net-rf":"RF Settings","net-data":"Data Settings","net-uart":"UART Configuration","net-audio":"Audio Settings","net-gps":"GPS Settings","sec-enc":"Encryption","sec-login":"Login Settings","dev-update":"Firmware Update"};
-
-function navTo(id, btn) {
-  stopCanvas();
-  currentView = id;
-  var allBtns = document.querySelectorAll(".nav-item,.nav-child");
-  for (var i = 0; i < allBtns.length; i++) allBtns[i].classList.remove("active");
-  if (btn) btn.classList.add("active");
-  setBanner(false);
-  if (id === "status") { viewStatus(); return; }
-  if (id === "topo-link") {
-    g("content").innerHTML = '<div style="height:100%;background:#F8F9FA"><div id="canvas-wrap" style="height:100%;margin:0;border-radius:0;border:none"><canvas id="topo-canvas"></canvas><div id="self-badge">Self = Node ' + (liveStatus.selfId || "-") + '</div></div></div>';
-    startCanvas(); return;
+// ── SECURITY PANEL: SETUP / QUESTIONS ────────────────────────────────────────
+function viewSecSetup(){
+  g("content").innerHTML=
+    '<div class="panel-pad"><div class="sec-title">Security Setup</div>'+
+    '<div style="max-width:420px">'+
+    '<div id="sec-status-row" style="margin-bottom:16px">'+
+    '<span style="font-size:12px;color:#565D65">Checking security status...</span></div>'+
+    '<div class="card" style="padding:24px">'+
+    '<p style="font-size:12px;color:#565D65;margin-bottom:20px">Set or update the security questions and password for node <strong>'+nodeIP+'</strong>. POST to <code style="background:#F4F5F6;padding:2px 6px;border-radius:3px;font-size:11px">/questionSet</code></p>'+
+    '<div class="field"><label>Current Password</label><input id="sq-pw" type="password" placeholder="admin (default)" value="admin"/></div>'+
+    '<div class="field"><label>Security Question 1</label><input id="sq-q1" type="text" placeholder="e.g. My unit callsign"/></div>'+
+    '<div class="field"><label>Security Question 2</label><input id="sq-q2" type="text" placeholder="e.g. My node serial number"/></div>'+
+    '<button class="btn-red" id="sq-btn" onclick="doSaveSetup()" style="width:100%;padding:11px;font-size:13px">Save Security Setup</button>'+
+    '<div id="sq-err" class="modal-err" style="margin-top:12px"></div>'+
+    '<div id="sq-ok" class="modal-ok" style="margin-top:12px"></div>'+
+    '</div></div></div>';
+  // Check current security status
+  if(!isDemo){
+    apiGet("/isQuestionSet").then(function(res){
+      var row=g("sec-status-row"); if(!row)return;
+      var isSet=res.success===true||res.success==="true";
+      row.innerHTML='<span class="sec-status-badge '+(isSet?"set":"unset")+'">'+
+        '<span class="sec-status-dot"></span>'+(isSet?"Password protection is active":"No password set - using default admin")+'</span>';
+    }).catch(function(){
+      var row=g("sec-status-row"); if(row) row.innerHTML='<span style="font-size:11px;color:#8A9099">Could not retrieve security status</span>';
+    });
+  } else {
+    g("sec-status-row").innerHTML='<span class="sec-status-badge set"><span class="sec-status-dot"></span>Demo mode</span>';
   }
-  if (id === "topo-table") { viewTopoTable(); return; }
-  if (id === "rf") { viewRF(); return; }
-  if (id === "dev-about") { viewDevice(); return; }
-  if (id === "net-basic") { viewBasic(); return; }
-  var label = PLACEHOLDER_LABELS[id] || id;
-  g("content").innerHTML = '<div class="placeholder" style="height:100%"><div class="ph-icon"><div style="width:16px;height:16px;background:#D8DADC;border-radius:50%"></div></div><div class="ph-title">' + label.toUpperCase() + '</div><div class="ph-sub">Panel available in full deployment</div></div>';
 }
 
-function togGroup(gid, aid) {
-  var el = g(gid);
-  var open = el.style.display === "none";
-  el.style.display = open ? "block" : "none";
-  g(aid).innerHTML = open ? "&#9660;" : "&#9658;";
+function doSaveSetup(){
+  var pw=g("sq-pw").value,q1=g("sq-q1").value.trim(),q2=g("sq-q2").value.trim();
+  g("sq-err").style.display="none"; g("sq-ok").style.display="none";
+  if(!pw||!q1||!q2){showModalErr("sq-err","All fields are required.");return;}
+  var btn=g("sq-btn"); btn.disabled=true; btn.textContent="Saving...";
+  if(isDemo){
+    setTimeout(function(){btn.disabled=false;btn.textContent="Save Security Setup";showModalOk("sq-ok","Security setup saved (Demo).");},800);
+    return;
+  }
+  apiPostForm("/questionSet",{password:pw,question1:q1,question2:q2}).then(function(res){
+    btn.disabled=false; btn.textContent="Save Security Setup";
+    if(res.success===true||res.success==="true"){
+      showModalOk("sq-ok","Security setup saved successfully.");
+    } else {
+      showModalErr("sq-err","Failed - incorrect password (code: "+(res.code||"?")+ ").");
+    }
+  }).catch(function(e){
+    btn.disabled=false; btn.textContent="Save Security Setup";
+    showModalErr("sq-err","Error: "+e.message);
+  });
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+var PLACEHOLDER_LABELS={topology:"Topology",network:"Network",security:"Security",device:"Device Info",
+  "net-global":"Global Settings","net-advance":"Advanced Config","net-rf":"RF Settings",
+  "net-data":"Data Settings","net-uart":"UART Configuration","net-audio":"Audio Settings",
+  "net-gps":"GPS Settings","dev-update":"Firmware Update"};
+
+function navTo(id, btn){
+  stopCanvas(); currentView=id;
+  var allBtns=document.querySelectorAll(".nav-item,.nav-child");
+  for(var i=0;i<allBtns.length;i++) allBtns[i].classList.remove("active");
+  if(btn) btn.classList.add("active");
+  setBanner(false);
+  if(id==="status"){viewStatus();return;}
+  if(id==="topo-link"){
+    g("content").innerHTML='<div style="height:100%;background:#F8F9FA"><div id="canvas-wrap" style="height:100%;margin:0;border-radius:0;border:none"><canvas id="topo-canvas"></canvas><div id="self-badge">Self = Node '+(liveStatus.selfId||"-")+'</div></div></div>';
+    startCanvas();return;
+  }
+  if(id==="topo-table"){viewTopoTable();return;}
+  if(id==="rf"){viewRF();return;}
+  if(id==="dev-about"){viewDevice();return;}
+  if(id==="net-basic"){viewBasic();return;}
+  if(id==="sec-password"){viewSecPassword();return;}
+  if(id==="sec-setup"){viewSecSetup();return;}
+  var label=PLACEHOLDER_LABELS[id]||id;
+  g("content").innerHTML='<div class="placeholder" style="height:100%"><div class="ph-icon"><div style="width:16px;height:16px;background:#D8DADC;border-radius:50%"></div></div><div class="ph-title">'+label.toUpperCase()+'</div><div class="ph-sub">Panel available in full deployment</div></div>';
+}
+
+function togGroup(gid, aid){
+  var el=g(gid),open=el.style.display==="none";
+  el.style.display=open?"block":"none";
+  g(aid).innerHTML=open?"&#9660;":"&#9658;";
 }
 </script>
 </body>
